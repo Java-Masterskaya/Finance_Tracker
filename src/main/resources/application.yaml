@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: finance-tracker
+
+  liquibase:
+    enabled: false
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true

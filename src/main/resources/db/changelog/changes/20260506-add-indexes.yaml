@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260506-001
+      author: AlexanderChum
+      changes:
+        - createIndex:
+            indexName: idx_transactions_account_id
+            tableName: transactions
+            columns:
+              - column:
+                  name: account_id
+
+  - changeSet:
+      id: 20260506-002
+      author: AlexanderChum
+      changes:
+        - createIndex:
+            indexName: idx_transactions_date
+            tableName: transactions
+            columns:
+              - column:
+                  name: date
+
+  - changeSet:
+      id: 20260506-003
+      author: AlexanderChum
+      changes:
+        - createIndex:
+            indexName: idx_transactions_account_id_date
+            tableName: transactions
+            columns:
+              - column:
+                  name: account_id
+              - column:
+                  name: date

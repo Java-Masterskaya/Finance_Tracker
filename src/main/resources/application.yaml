@@ -3,7 +3,8 @@ spring:
     name: finance-tracker
 
   liquibase:
-    enabled: false
+    enabled: true
+    change-log: classpath:db/changelog/changelog-master.yaml
 
   jpa:
     hibernate:

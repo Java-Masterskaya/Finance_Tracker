@@ -1,0 +1,6 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/changes/20260505-create-tables.yaml
+
+  - include:
+      file: db/changelog/changes/20260506-add-indexes.yaml

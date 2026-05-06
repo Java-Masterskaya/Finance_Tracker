@@ -1,11 +1,59 @@
+  # Общаяя информация о приложении
 spring:
   application:
     name: finance-tracker
 
-  liquibase:
-    enabled: false
+  # Основные параметры Spring Boot
+  main:
+    banner-mode: "off"
 
+  # Конфигурация JPA/Hibernate для PostgreSQL
   jpa:
+    open-in-view: false                # Закрывает сессию Hibernate после запроса (избегает N+1 проблем)
+    show-sql: true                     # SQL запросы консоль
     hibernate:
-      ddl-auto: validate
-    show-sql: true
+      ddl-auto: validate               # Только проверка соответствия схемы БД и сущностей, изменения НЕ вносятся
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 25               # Группирует 25 INSERT/UPDATE операций в один батч
+          fetch_size: 50               # JDBC загружает 50 строк за раз
+          order_inserts: true          # Переупорядочивает INSERT
+          order_updates: true          # Переупорядочивает UPDATE
+        use_sql_comments: true         # Добавляет комментарии к SQL
+        format_sql: false              # SQL не форматируется
+
+  # Конфигурация Jackson для JSON сериализации/десериализации
+  jackson:
+    serialization:
+      indent-output: false             # Без отступов для уменьшения размера JSON
+    deserialization:
+      fail-on-unknown-properties: false # Игнорирует неизвестные поля при парсинге JSON
+    default-property-inclusion: non_null # В JSON включаются только ненулевые поля
+
+  # Конфигурация валидации
+  validation:
+    enabled: true
+
+  # Конфигурация логирования - базовое (в профилях переопределим)
+logging:
+  level:
+    root: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.hibernate: WARN
+  file:
+    name: logs/application.log
+
+# Конфигурация сервера
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+  error:
+    include-message: always            # Всегда включает сообщение об ошибке в response
+    include-binding-errors: always     # Включает ошибки валидации полей
+
+liquibase:
+    enabled: false

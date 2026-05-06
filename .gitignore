@@ -38,3 +38,6 @@ out/
 
 ### Environment ###
 .env
+/logs/application.log
+/logs/application-local.log
+/logs/application-dev.log

@@ -1,0 +1,109 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260505-001
+      author: AlexanderChum
+      changes:
+        - sql:
+            sql: |
+              CREATE TYPE transaction_type AS ENUM ('INCOME', 'EXPENSE');
+
+  - changeSet:
+      id: 20260505-002
+      author: AlexanderChum
+      changes:
+        - createTable:
+            tableName: accounts
+            remarks: "Таблица счетов"
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: "Первичный ключ, id счета"
+              - column:
+                  name: name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                  remarks: "Имя счета (example: Зарплатная карта)"
+              - column:
+                  name: currency
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+                  remarks: "Валюта счета в виде аббревиатуры"
+              - column:
+                  name: balance
+                  type: FLOAT
+                  constraints:
+                    nullable: false
+                  remarks: "Баланс счета"
+
+  - changeSet:
+      id: 20260505-003
+      author: AlexanderChum
+      changes:
+        - createTable:
+            tableName: transactions
+            remarks: "Таблица транзакций"
+            columns:
+              - column:
+                  name: transaction_id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: "id транзакции"
+              - column:
+                  name: account_id
+                  type: INT
+                  constraints:
+                    nullable: false
+                  remarks: "id счета для транзакции"
+              - column:
+                  name: type
+                  type: transaction_type
+                  constraints:
+                    nullable: false
+                  remarks: "Тип операции"
+              - column:
+                  name: amount
+                  type: FLOAT
+                  constraints:
+                    nullable: false
+                  remarks: "Количество денег для операции"
+              - column:
+                  name: category
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+                  remarks: "Категория операции по счету (example: Супермаркеты, Транспорт)"
+              - column:
+                  name: date
+                  type: DATE
+                  constraints:
+                    nullable: false
+                  remarks: "Дата операции"
+              - column:
+                  name: description
+                  type: VARCHAR(300)
+                  constraints:
+                    nullable: true
+                  remarks: "Описание операции (example: Покупка продуктов на неделю)"
+
+  - changeSet:
+      id: 20260505-004
+      author: AlexanderChum
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: transactions
+            baseColumnNames: account_id
+            referencedTableName: accounts
+            referencedColumnNames: id
+            constraintName: fk_transactions_accounts
+            onDelete: CASCADE
+            remarks: "Правило для связки счета с его операциями"

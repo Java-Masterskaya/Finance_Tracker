@@ -7,6 +7,11 @@ spring:
   main:
     banner-mode: "off"
 
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/changelog-master.yaml
+
+
   # Конфигурация JPA/Hibernate для PostgreSQL
   jpa:
     open-in-view: false                # Закрывает сессию Hibernate после запроса (избегает N+1 проблем)
@@ -53,7 +58,4 @@ server:
     context-path: /api
   error:
     include-message: always            # Всегда включает сообщение об ошибке в response
-    include-binding-errors: always     # Включает ошибки валидации полей
-
-liquibase:
-    enabled: false
+    include-binding-errors: always     # Включает ошибки валидации поле

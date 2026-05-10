@@ -5,7 +5,7 @@ import ru.yandex.finance_tracker.model.Currency;
 
 @Data
 public class AccountInfoDto {
-    Long id;
+    Integer id;
     String name;
     Currency currency;
     Float balance;

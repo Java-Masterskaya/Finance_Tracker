@@ -1,0 +1,61 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260509-001
+      author: n5n1m2
+      changes:
+        - createTable:
+            tableName: users
+            remarks: "Таблица пользователей"
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: "PK, user id"
+              - column:
+                  name: email
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+                    unique: true
+                  remarks: "Email пользователя (используется для входа)"
+              - column:
+                  name: password_hash
+                  type: VARCHAR(60)
+                  constraints:
+                      nullable: false
+                  remarks: "Хеш пароля (BCrypt)"
+              - column:
+                  name: name
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+                  remarks: "Имя пользователя"
+              - column:
+                  name: role
+                  type: VARCHAR(20)
+                  constraints:
+                      nullable: false
+                  remarks: "Роль (ROLE_USER, ROLE_ADMIN)"
+
+  - changeSet:
+      id: 20260509-002
+      author: n5n1m2
+      changes:
+        - addColumn:
+            tableName: accounts
+            columns:
+              - column:
+                  name: user_id
+                  type: INT
+                  remarks: "Account holder"
+
+        - addForeignKeyConstraint:
+            baseTableName: accounts
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_accounts_users

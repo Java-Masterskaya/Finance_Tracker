@@ -79,3 +79,83 @@ docker compose down -v
 На данный момент реализованы 3 индексации для таблицы `transactions`
 
 С помощью них осуществляется быстрый поиск по `account_id` и `date`
+
+
+## Аутентификация и получение токена
+
+**Регистрация нового пользователя**
+```bash
+POST http://localhost:8080/api/registration
+Content-Type: application/json
+{
+    "email": "user@example.com",
+    "password": "password1234567890",
+    "firstName": "Иван"
+}
+```
+
+**Войти в личный кабинет**
+```bash
+POST http://localhost:8080/api/login
+Content-Type: application/json
+
+{
+    "email": "user@example.com",
+    "password": "password1234567890"
+}
+```
+Ответ
+```json
+{
+    "token": "eyJhbGciOiJIUzI1NiIs...",
+    "email": "user@example.com",
+    "role": "ROLE_USER"
+}
+```
+**Тестовый администратор**
+
+Создаётся автоматически при первом запуске:
+
+| Роль    | Email                 | Пароль    |
+| ------- | --------------------- | --------- |
+| `ADMIN` | `admin@example.com`   | `admin123`|
+
+### Использование токена
+
+Добавьте в заголовок всех защищённых запросов:
+`Authorization: Bearer <ваш_токен>`
+
+## Роли доступа
+
+| Аннотация | Доступ |
+| --- | --- |
+| `@PreAuthorize("hasRole('ADMIN')")` | только `ADMIN` |
+| `@PreAuthorize("hasAnyRole('USER', 'ADMIN')")` | `USER` или `ADMIN` |
+| `@PreAuthorize("permitAll()")` | открытый доступ |
+
+### Получение текущего пользователя в коде
+
+```java
+// ID текущего пользователя
+Long userId = securityUtils.getCurrentUserId();
+// объект текущего пользователя
+User user = securityUtils.getCurrentUser();
+```
+
+### Изоляция данных
+
+Каждый запрос к личным данным (счета, транзакции) автоматически проверяет принадлежность сущности текущему пользователю.  
+Доступ к чужим данным через подмену ID в URL или body невозможен.
+
+**Пример проверки в коде:**
+
+```java
+@GetMapping("/{accountId}")
+@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+public ResponseEntity<Account> getAccount(@PathVariable Long accountId) {
+    Long userId = securityUtils.getCurrentUserId();
+    Account account = accountRepository.findByIdAndUserId(accountId, userId)
+        .orElseThrow(() -> new AccessDeniedException("Access denied!"));
+    return ResponseEntity.ok(account);
+}
+```

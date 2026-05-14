@@ -59,3 +59,12 @@ server:
   error:
     include-message: always            # Всегда включает сообщение об ошибке в response
     include-binding-errors: always     # Включает ошибки валидации поле
+
+  # JWT (JSON Web Token) конфигурация для аутентификации
+jwt:
+  secret: "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970"  # HMAC SHA-256 ключ (не менее 256 бит)
+  expiration: 86400000                                                        # Токен истекает через 24 часа
+
+admin:
+  email: ${ADMIN_EMAIL:admin@example.com} # Email администратора (можно переопределить через ADMIN_EMAIL)
+  password: ${ADMIN_PASSWORD:admin123}    # Пароль администратора (можно переопределить через ADMIN_PASSWORD)

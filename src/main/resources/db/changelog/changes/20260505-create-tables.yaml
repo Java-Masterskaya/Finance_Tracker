@@ -17,7 +17,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: INT
+                  type: BIGINT
                   autoIncrement: true
                   constraints:
                     primaryKey: true
@@ -52,7 +52,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: transaction_id
-                  type: INT
+                  type: BIGINT
                   autoIncrement: true
                   constraints:
                     primaryKey: true
@@ -60,7 +60,7 @@ databaseChangeLog:
                   remarks: "id транзакции"
               - column:
                   name: account_id
-                  type: INT
+                  type: BIGINT
                   constraints:
                     nullable: false
                   remarks: "id счета для транзакции"

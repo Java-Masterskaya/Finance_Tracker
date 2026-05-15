@@ -3,14 +3,11 @@ package ru.yandex.finance_tracker.dto.output;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.yandex.finance_tracker.model.Currency;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AccountInfoDto {
-    Integer id;
-    String name;
-    Currency currency;
-    Float balance;
+public class CategoryExpenseDto {
+    String category;
+    Float totalExpense;
 }

@@ -9,7 +9,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: INT
+                  type: BIGINT
                   autoIncrement: true
                   constraints:
                     primaryKey: true
@@ -25,7 +25,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: user_id
-                  type: INT
+                  type: BIGINT
                   remarks: "Account holder"
 
         - addForeignKeyConstraint:

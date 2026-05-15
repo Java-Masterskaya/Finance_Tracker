@@ -7,15 +7,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler extends RuntimeException {
-    private static final int HTTP_STATUS_NOT_FOUND = 404;
-    private static final int HTTP_STATUS_CONFLICT = 409;
-    private static final int HTTP_STATUS_BAD_REQUEST = 400;
-    private static final int HTTP_STATUS_FORBIDDEN = 403;
+public class GlobalExceptionHandler {
 
     /**
      * Обрабатывает исключения "Ресурс не найден".
@@ -28,15 +23,8 @@ public class GlobalExceptionHandler extends RuntimeException {
      * @return ResponseEntity с информацией об ошибке и статусом 404 (Not Found)
      */
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleNotFoundException(
-            final NotFoundException ex
-    ) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HTTP_STATUS_NOT_FOUND);
-        body.put("error", ex.getMessage());
-
-        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    public ResponseEntity<ApiError> handleNotFoundException(final NotFoundException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, "Resource Not Found", ex.getMessage());
     }
 
     /**
@@ -50,15 +38,23 @@ public class GlobalExceptionHandler extends RuntimeException {
      * @return ResponseEntity с информацией об ошибке и статусом 409 (Conflict)
      */
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<Map<String, Object>> handleUserAlreadyExistsException(
-            final UserAlreadyExistsException ex
-    ) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HTTP_STATUS_CONFLICT);
-        body.put("error", ex.getMessage());
+    public ResponseEntity<ApiError> handleUserAlreadyExistsException(final UserAlreadyExistsException ex) {
+        return buildResponse(HttpStatus.CONFLICT, "Conflict", ex.getMessage());
+    }
 
-        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+    /**
+     //     * Обрабатывает исключения нарушения прав доступа.
+     //     * <p>
+     //     * Перехватывает ситуации, когда авторизованный пользователь пытается получить
+     //     * доступ к ресурсам, которые ему не принадлежат (например, чужой счет).
+     //     * </p>
+     //     *
+     //     * @param ex исключение доступа Access Denied
+     //     * @return ResponseEntity с информацией о запрете доступа и статусом 403 (Forbidden)
+     //     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiError> handleAccessDeniedException(final AccessDeniedException ex) {
+        return buildResponse(HttpStatus.FORBIDDEN, "Access Denied", ex.getMessage());
     }
 
     /**
@@ -72,36 +68,21 @@ public class GlobalExceptionHandler extends RuntimeException {
      * @return ResponseEntity с подробностями валидации и статусом 400 (Bad Request)
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidation(
-            final MethodArgumentNotValidException ex
-    ) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HTTP_STATUS_BAD_REQUEST);
-        body.put("error", ex.getMessage());
+    public ResponseEntity<ApiError> handleValidation(final MethodArgumentNotValidException ex) {
+        String details = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining(", "));
 
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+        return buildResponse(HttpStatus.BAD_REQUEST, "Validation Failed", details);
     }
 
-    /**
-     * Обрабатывает исключения нарушения прав доступа.
-     * <p>
-     * Перехватывает ситуации, когда авторизованный пользователь пытается получить
-     * доступ к ресурсам, которые ему не принадлежат (например, чужой счет).
-     * </p>
-     *
-     * @param ex исключение доступа (кастомное Acssecnot)
-     * @return ResponseEntity с информацией о запрете доступа и статусом 403 (Forbidden)
-     */
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<Map<String, Object>> handleAccessDeniedException(
-            final AccessDeniedException ex
-    ) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HTTP_STATUS_FORBIDDEN);
-        body.put("error", ex.getMessage());
-
-        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
+    private ResponseEntity<ApiError> buildResponse(HttpStatus status, String error, String message) {
+        ApiError apiError = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .status(status.value())
+                .error(error)
+                .message(message)
+                .build();
+        return new ResponseEntity<>(apiError, status);
     }
 }

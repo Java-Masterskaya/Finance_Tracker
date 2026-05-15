@@ -9,8 +9,8 @@ import ru.yandex.finance_tracker.model.Currency;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AccountInfoDto {
-    Integer id;
-    String name;
-    Currency currency;
-    Float balance;
+    private Integer id;
+    private String name;
+    private Currency currency;
+    private Float balance;
 }

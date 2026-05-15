@@ -17,17 +17,17 @@ import java.time.LocalDate;
 public class TransactionRequest {
     @NotNull
     @PositiveOrZero
-    Integer accountId;
+    private Integer accountId;
     @NotNull
-    Type type;
+    private Type type;
     @NotNull
     @PositiveOrZero
-    Float amount;
+    private Float amount;
     @NotNull
-    String category;
+    private String category;
     @JsonFormat(pattern = "yyyy-MM-dd")
     @NotNull
     @PastOrPresent
-    LocalDate date;
-    String description;
+    private LocalDate date;
+    private String description;
 }

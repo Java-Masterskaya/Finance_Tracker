@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CategoryExpenseDto {
-    String category;
-    Float totalExpense;
+    private String category;
+    private Float totalExpense;
 }

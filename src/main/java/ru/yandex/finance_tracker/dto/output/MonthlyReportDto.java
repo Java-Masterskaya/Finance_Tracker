@@ -10,7 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MonthlyReportDto {
-    Float totalIncome;
-    Float totalExpense;
-    List<CategoryExpenseDto> expenseByCategory;
+    private Float totalIncome;
+    private Float totalExpense;
+    private List<CategoryExpenseDto> expenseByCategory;
 }

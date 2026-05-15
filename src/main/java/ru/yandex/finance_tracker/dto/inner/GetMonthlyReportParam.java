@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GetMonthlyReportParam {
-    Integer userId;
-    Integer year;
-    Integer month;
+    private Integer userId;
+    private Integer year;
+    private Integer month;
 }

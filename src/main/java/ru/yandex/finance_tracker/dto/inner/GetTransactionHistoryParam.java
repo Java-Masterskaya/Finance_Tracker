@@ -10,6 +10,6 @@ import java.awt.print.Pageable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GetTransactionHistoryParam {
-    Integer accountId;
-    Pageable pageable;
+    private Integer accountId;
+    private Pageable pageable;
 }

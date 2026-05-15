@@ -12,10 +12,10 @@ import ru.yandex.finance_tracker.model.Currency;
 @NoArgsConstructor
 public class AccountCreateRequest {
     @NotNull
-    String name;
+    private String name;
     @NotNull
-    Currency currency;
+    private Currency currency;
     @NotNull
     @PositiveOrZero
-    Float initialBalance;
+    private Float initialBalance;
 }

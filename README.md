@@ -27,7 +27,7 @@ docker compose down -v
 ## Используемые сервисы
 
 | Сервис     | Порт  |
-| ---------- | ----- |
+|------------|-------|
 | Приложение | 8080  |
 | PostgreSQL | 5432  |
 | Redis      | 6379  |
@@ -39,10 +39,9 @@ docker compose down -v
 
 Пример переменных находится в `.env.example`.
 
-
 # Миграция базы данных
 
-Осуществляется с помощью Liquibase, без использования rollback механики (для отмены предыдущего действия необходимо 
+Осуществляется с помощью Liquibase, без использования rollback механики (для отмены предыдущего действия необходимо
 создавать новый файл с изменениями)
 
 Каждое действие с изменением базы данных описывается в отдельном `.yaml` файле в каталоге changes
@@ -62,7 +61,7 @@ docker compose down -v
 | name     | VARCHAR |
 | currency | VARCHAR |
 | balance  | FLOAT   |
-
+| user_id  | INT     |
 
 | Transactions   | Тип              |
 |----------------|------------------|
@@ -80,10 +79,10 @@ docker compose down -v
 
 С помощью них осуществляется быстрый поиск по `account_id` и `date`
 
-
 ## Аутентификация и получение токена
 
 **Регистрация нового пользователя**
+
 ```bash
 POST http://localhost:8080/api/registration
 Content-Type: application/json
@@ -95,6 +94,7 @@ Content-Type: application/json
 ```
 
 **Войти в личный кабинет**
+
 ```bash
 POST http://localhost:8080/api/login
 Content-Type: application/json
@@ -104,21 +104,24 @@ Content-Type: application/json
     "password": "password1234567890"
 }
 ```
+
 Ответ
+
 ```json
 {
-    "token": "eyJhbGciOiJIUzI1NiIs...",
-    "email": "user@example.com",
-    "role": "ROLE_USER"
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "email": "user@example.com",
+  "role": "ROLE_USER"
 }
 ```
+
 **Тестовый администратор**
 
 Создаётся автоматически при первом запуске:
 
-| Роль    | Email                 | Пароль    |
-| ------- | --------------------- | --------- |
-| `ADMIN` | `admin@example.com`   | `admin123`|
+| Роль    | Email               | Пароль     |
+|---------|---------------------|------------|
+| `ADMIN` | `admin@example.com` | `admin123` |
 
 ### Использование токена
 
@@ -127,11 +130,11 @@ Content-Type: application/json
 
 ## Роли доступа
 
-| Аннотация | Доступ |
-| --- | --- |
-| `@PreAuthorize("hasRole('ADMIN')")` | только `ADMIN` |
+| Аннотация                                      | Доступ             |
+|------------------------------------------------|--------------------|
+| `@PreAuthorize("hasRole('ADMIN')")`            | только `ADMIN`     |
 | `@PreAuthorize("hasAnyRole('USER', 'ADMIN')")` | `USER` или `ADMIN` |
-| `@PreAuthorize("permitAll()")` | открытый доступ |
+| `@PreAuthorize("permitAll()")`                 | открытый доступ    |
 
 ### Получение текущего пользователя в коде
 
@@ -150,12 +153,51 @@ User user = securityUtils.getCurrentUser();
 **Пример проверки в коде:**
 
 ```java
+
 @GetMapping("/{accountId}")
 @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 public ResponseEntity<Account> getAccount(@PathVariable Long accountId) {
     Long userId = securityUtils.getCurrentUserId();
     Account account = accountRepository.findByIdAndUserId(accountId, userId)
-        .orElseThrow(() -> new AccessDeniedException("Access denied!"));
+            .orElseThrow(() -> new AccessDeniedException("Access denied!"));
     return ResponseEntity.ok(account);
+}
+```
+
+## Основные эндпоинты (API v1)
+
+Для всех защищенных эндпоинтов обязательны заголовки:
+
+* `Authorization: Bearer <token>`
+* `userId: <ID пользователя>`
+
+### Работа со счетами (/api/v1/accounts)
+
+**Получить список счетов пользователя**
+
+* Метод: `GET`
+* Пример ответа (200 OK):
+
+```JSON
+[
+  {
+    "id": 1,
+    "name": "Зарплатная карта",
+    "currency": "RUB",
+    "balance": 150500.5
+  }
+]
+```
+
+**Создать новый счет**
+
+* Метод: `POST`
+* Тело запроса:
+
+```JSON
+{
+  "name": "string",
+  "currency": "RUB",
+  "initialBalance": 0
 }
 ```

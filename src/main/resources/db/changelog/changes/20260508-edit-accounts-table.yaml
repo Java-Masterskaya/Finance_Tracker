@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260508-001
+      author: n5n1m2
+      changes:
+        - sql:
+            sql: CREATE TYPE currency_type AS ENUM ('RUB', 'EUR', 'USD');
+
+  - changeSet:
+      id: 20260508-002
+      author: n5n1m2
+      changes:
+        - sql:
+            sql: ALTER TABLE accounts
+              ALTER COLUMN currency TYPE currency_type
+                USING currency::currency_type,
+              ALTER COLUMN currency SET NOT NULL;

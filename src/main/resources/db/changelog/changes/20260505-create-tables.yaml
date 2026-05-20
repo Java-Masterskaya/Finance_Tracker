@@ -65,6 +65,12 @@ databaseChangeLog:
                     nullable: false
                   remarks: "id счета для транзакции"
               - column:
+                  name: user_id
+                  type: INT
+                  constraints:
+                    nullable: false
+                  remarks: "id пользователя (для прямой связи и изоляции)"
+              - column:
                   name: type
                   type: transaction_type
                   constraints:

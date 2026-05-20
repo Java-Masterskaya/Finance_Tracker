@@ -15,6 +15,31 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
                   remarks: "PK, user id"
+              - column:
+                  name: email
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+                    unique: true
+                  remarks: "Email пользователя (используется для входа)"
+              - column:
+                  name: password_hash
+                  type: VARCHAR(60)
+                  constraints:
+                      nullable: false
+                  remarks: "Хеш пароля (BCrypt)"
+              - column:
+                  name: name
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+                  remarks: "Имя пользователя"
+              - column:
+                  name: role
+                  type: VARCHAR(20)
+                  constraints:
+                      nullable: false
+                  remarks: "Роль (ROLE_USER, ROLE_ADMIN)"
 
   - changeSet:
       id: 20260509-002

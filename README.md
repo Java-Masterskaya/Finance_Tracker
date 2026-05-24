@@ -216,3 +216,40 @@ public ResponseEntity<Account> getAccount(@PathVariable Long accountId) {
   "initialBalance": 0
 }
 ```
+
+### Создание транзакции (`/api/v1/transactions`)
+
+**Метод:** `POST`
+
+**Заголовки:**
+- `userId: {id пользователя}`
+- `Authorization: Bearer {jwt_token}`
+
+**Тело запроса:**
+
+```json
+{
+  "accountId": 1,
+  "type": "EXPENSE",
+  "amount": 1500.00,
+  "category": "Супермаркеты",
+  "date": "2026-05-24",
+  "description": "Покупка продуктов"
+}
+```
+
+**Пример ответа (201 Created)**
+
+```json
+{
+"transactionId": 1,
+"type": "EXPENSE",
+"amount": 1500.00,
+"category": "Супермаркеты",
+"date": "2026-05-24",
+"description": "Покупка продуктов",
+"accountId": 1,
+"accountName": "Зарплатная карта",
+"accountBalance": 98500.00
+}
+```

@@ -1,0 +1,203 @@
+openapi: 3.0.3
+info:
+  title: Personal Finance Tracker API
+  version: 1.0.0
+  description: API для приложения учета личных финансов
+paths:
+  /api/v1/accounts:
+    get:
+      summary: Получить список счетов пользователя
+      parameters:
+        - name: userId
+          in: header
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Account'
+    post:
+      summary: Создать новый счет
+      parameters:
+        - name: userId
+          in: header
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountCreateRequest'
+      responses:
+        '201':
+          description: Счет успешно создан
+
+  /api/v1/transactions:
+    post:
+      summary: Добавить новую транзакцию (доход/расход)
+      parameters:
+        - name: userId
+          in: header
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+      responses:
+        '201':
+          description: Транзакция успешно добавлена
+        '400':
+          description: Ошибка валидации
+
+  /api/v1/accounts/{accountId}/transactions:
+    get:
+      summary: Получить историю транзакций по конкретному счету
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Страница с транзакциями
+
+  /api/v1/reports/monthly:
+    get:
+      summary: Получить сводный отчет за месяц
+      parameters:
+        - name: userId
+          in: header
+          required: true
+          schema:
+            type: integer
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 2026
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+            example: 4
+      responses:
+        '200':
+          description: Отчет успешно сгенерирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthlyReport'
+
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Зарплатная карта"
+        currency:
+          type: string
+          example: "RUB"
+        balance:
+          type: number
+          format: float
+          example: 150500.50
+
+    AccountCreateRequest:
+      type: object
+      required:
+        - name
+        - currency
+        - initialBalance
+      properties:
+        name:
+          type: string
+        currency:
+          type: string
+          example: "RUB"
+        initialBalance:
+          type: number
+          format: float
+          example: 0.0
+
+    TransactionRequest:
+      type: object
+      required:
+        - accountId
+        - type
+        - amount
+        - category
+        - date
+      properties:
+        accountId:
+          type: integer
+        type:
+          type: string
+          enum: [INCOME, EXPENSE]
+        amount:
+          type: number
+          format: float
+          minimum: 0.01
+          example: 1500.0
+        category:
+          type: string
+          example: "Супермаркеты"
+        date:
+          type: string
+          format: date
+          example: "2026-04-11"
+        description:
+          type: string
+          example: "Покупка продуктов на неделю"
+
+    MonthlyReport:
+      type: object
+      properties:
+        totalIncome:
+          type: number
+          format: float
+          example: 200000.0
+        totalExpense:
+          type: number
+          format: float
+          example: 45000.0
+        expenseByCategory:
+          type: object
+          additionalProperties:
+            type: number
+            format: float
+          example:
+            "Супермаркеты": 25000.0
+            "Транспорт": 5000.0
+            "ЖКХ": 15000.0

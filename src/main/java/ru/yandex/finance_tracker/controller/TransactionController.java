@@ -15,6 +15,8 @@ import ru.yandex.finance_tracker.idempotency.IdempotencyService;
 import ru.yandex.finance_tracker.security.service.AuthenticationService;
 import ru.yandex.finance_tracker.service.TransactionService;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/v1/transactions")
 @RequiredArgsConstructor
@@ -34,8 +36,14 @@ public class TransactionController {
             throw new IdempotencyKeyException("Idempotency key is missing", HttpStatus.BAD_REQUEST);
         }
 
-        if (!idempotencyService.isUniqueRequest(iKey)) {
-            throw new IdempotencyKeyException("Request duplication, rollback", HttpStatus.CONFLICT);
+        Optional<TransactionInfoDto> cachedResponse = idempotencyService.getCachedResponse(iKey);
+        if (cachedResponse.isPresent()) {
+            log.info("Idempotent request: returning cached response for key={}", iKey);
+            return cachedResponse.get();
+        }
+
+        if (!idempotencyService.tryLock(iKey)) {
+            throw new IdempotencyKeyException("Duplicate request in progress", HttpStatus.CONFLICT);
         }
 
         try {
@@ -43,10 +51,11 @@ public class TransactionController {
 
             authenticationService.checkAuthority(userId, userDetails);
             TransactionInfoDto response = transactionService.createTransaction(userId, request);
+            idempotencyService.cacheResponse(iKey, response);
             log.info("POST /v1/transactions finished: transactionId={}", response.transactionId());
             return response;
         } catch (Exception e) {
-            idempotencyService.removeKey(iKey);
+            idempotencyService.unlock(iKey);
             throw new ServerErrorException("Fail during transaction operation");
         }
     }

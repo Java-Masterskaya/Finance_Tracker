@@ -14,6 +14,7 @@ import ru.yandex.finance_tracker.exception.ServerErrorException;
 import ru.yandex.finance_tracker.idempotency.IdempotencyService;
 import ru.yandex.finance_tracker.security.service.AuthenticationService;
 import ru.yandex.finance_tracker.service.TransactionService;
+import ru.yandex.finance_tracker.validation.IdempotencyValidator;
 
 import java.util.Optional;
 
@@ -25,6 +26,7 @@ public class TransactionController {
     private final TransactionService transactionService;
     private final AuthenticationService authenticationService;
     private final IdempotencyService idempotencyService;
+    private final IdempotencyValidator idempotencyValidator;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -32,9 +34,9 @@ public class TransactionController {
                                                 @Valid @RequestBody TransactionRequest request,
                                                 @AuthenticationPrincipal UserDetails userDetails,
                                                 @RequestHeader(value = "X-Idempotency-Key") String iKey) {
-        if (iKey == null || iKey.isBlank()) {
-            throw new IdempotencyKeyException("Idempotency key is missing", HttpStatus.BAD_REQUEST);
-        }
+
+        log.debug("Валидация ключа идемпотентности ikey={}", iKey);
+        idempotencyValidator.validateKey(iKey);
 
         Optional<TransactionInfoDto> cachedResponse = idempotencyService.getCachedResponse(iKey);
         if (cachedResponse.isPresent()) {

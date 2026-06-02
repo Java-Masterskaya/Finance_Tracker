@@ -16,20 +16,21 @@ import java.util.List;
 @Configuration
 public class ValidationConfig implements WebMvcConfigurer {
 
+    // Временно отключаем валидатор пока эндпоинты не реализованы полностью
     //Валидация OpenApi через Interceptor
-    @Bean
-    public OpenApiInteractionValidator openApiValidator() {
-        return OpenApiInteractionValidator
-                .createForSpecificationUrl("classpath:finance_openapi.yaml")
-                .build();
-    }
-
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new OpenApiValidationInterceptor(openApiValidator()))
-                .addPathPatterns("/api/v1/**")
-                .order(0);
-    }
+//    @Bean
+//    public OpenApiInteractionValidator openApiValidator() {
+//        return OpenApiInteractionValidator
+//                .createForSpecificationUrl("classpath:finance_openapi.yaml")
+//                .build();
+//    }
+//
+//    @Override
+//    public void addInterceptors(InterceptorRegistry registry) {
+//        registry.addInterceptor(new OpenApiValidationInterceptor(openApiValidator()))
+//                .addPathPatterns("/api/v1/**")
+//                .order(0);
+//    }
 
     @Bean
     public CorsFilter corsFilter() {

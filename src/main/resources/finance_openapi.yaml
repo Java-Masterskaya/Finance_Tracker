@@ -49,6 +49,12 @@ paths:
           required: true
           schema:
             type: integer
+        - name: X-Idempotency-Key
+          in: header
+          required: true
+          description: "Ключ идемпотентности"
+          schema:
+            type: string
       requestBody:
         required: true
         content:

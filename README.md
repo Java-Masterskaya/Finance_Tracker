@@ -79,6 +79,21 @@ docker compose down -v
 
 С помощью них осуществляется быстрый поиск по `account_id` и `date`
 
+## Security
+
+- Все входящие запросы проверяются на соответствие спецификации `finance_openapi.yaml`
+- Используется `swagger-request-validator` от Atlassian
+- Настроена в `ValidationConfig.java`
+
+- Запросы разрешены только с доверенных источников
+- Настроен в `ValidationConfig.java`
+
+- Все пароли и ключи только из переменных окружения (`.env`)
+- В коде и конфигурациях нет захардкоженных секретов
+
+- Единый формат ошибок через `GlobalExceptionHandler.java`
+- Стек-трейсы не отдаются в ответах
+
 ## Аутентификация и получение токена
 
 **Регистрация нового пользователя**
@@ -199,5 +214,42 @@ public ResponseEntity<Account> getAccount(@PathVariable Long accountId) {
   "name": "string",
   "currency": "RUB",
   "initialBalance": 0
+}
+```
+
+### Создание транзакции (`/api/v1/transactions`)
+
+**Метод:** `POST`
+
+**Заголовки:**
+- `userId: {id пользователя}`
+- `Authorization: Bearer {jwt_token}`
+
+**Тело запроса:**
+
+```json
+{
+  "accountId": 1,
+  "type": "EXPENSE",
+  "amount": 1500.00,
+  "category": "Супермаркеты",
+  "date": "2026-05-24",
+  "description": "Покупка продуктов"
+}
+```
+
+**Пример ответа (201 Created)**
+
+```json
+{
+"transactionId": 1,
+"type": "EXPENSE",
+"amount": 1500.00,
+"category": "Супермаркеты",
+"date": "2026-05-24",
+"description": "Покупка продуктов",
+"accountId": 1,
+"accountName": "Зарплатная карта",
+"accountBalance": 98500.00
 }
 ```

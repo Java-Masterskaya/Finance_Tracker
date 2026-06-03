@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ServerErrorException;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
@@ -74,6 +75,46 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
 
         return buildResponse(HttpStatus.BAD_REQUEST, "Validation Failed", details);
+    }
+
+    /**
+     * Обрабатывает ошибки валидации OpenAPI.
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiError> handleBadRequest(IllegalArgumentException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Bad Request",
+                ex.getMessage());
+    }
+
+    /**
+     * Обрабатывает исключения нахождения ключа идемпотентности в кеше Redis
+     * <p>
+     * При попытке отправить запрос с одним и тем же ключом идемпотентности пользователь получит
+     * сообщение о том что его транзакция уже в работе и не получит/потеряет свои деньги дважды или более раз
+     * </p>
+     *
+     * @param ex исключение IdempotencyKeyException
+     * @return ResponseEntity с информацией об исключении и статусом 409 (Conflict)
+     */
+    @ExceptionHandler(IdempotencyKeyException.class)
+    public ResponseEntity<ApiError> handleIdempotencyException(final IdempotencyKeyException ex) {
+        return buildResponse(ex.getStatus(), "Idempotency key already in use", ex.getMessage());
+    }
+
+    /**
+     * Обрабатывает исключения возникшие во время выполнения программы
+     * <p>
+     * Представляет из себя handler для отлова обобщенных ошибок возникших в процессе работы,
+     * на момент создания реализован только в контроллере транзакций
+     * </p>
+     *
+     * @param ex исключение ServerErrorException
+     * @return ResponseEntity с информацией, приложенной в message ошибки и статусом 500 (Internal Server Error)
+     */
+
+    @ExceptionHandler(ServerErrorException.class)
+    public ResponseEntity<ApiError> handleServerErrorException(final ServerErrorException ex) {
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Fail during program run", ex.getMessage());
     }
 
     private ResponseEntity<ApiError> buildResponse(HttpStatus status, String error, String message) {

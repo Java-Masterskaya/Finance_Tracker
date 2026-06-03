@@ -1,4 +1,4 @@
-  # Общаяя информация о приложении
+  # Общая информация о приложении
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/financeDB
@@ -7,6 +7,10 @@ spring:
 
   application:
     name: finance-tracker
+  servlet:
+    multipart:
+      max-file-size: 1MB
+      max-request-size: 1MB
 
   # Основные параметры Spring Boot
   main:
@@ -64,6 +68,9 @@ server:
   error:
     include-message: always            # Всегда включает сообщение об ошибке в response
     include-binding-errors: always     # Включает ошибки валидации поле
+  tomcat:
+    max-http-form-post-size: 1MB
+    max-swallow-size: 2MB
 
   # JWT (JSON Web Token) конфигурация для аутентификации
 jwt:

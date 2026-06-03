@@ -1,4 +1,4 @@
-  # Общаяя информация о приложении
+  # Общая информация о приложении
 spring:
   application:
     name: finance-tracker

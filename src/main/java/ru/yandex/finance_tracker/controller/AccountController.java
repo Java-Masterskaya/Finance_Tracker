@@ -10,6 +10,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.finance_tracker.dto.input.AccountCreateRequest;
 import ru.yandex.finance_tracker.dto.output.AccountInfoDto;
+import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
 import ru.yandex.finance_tracker.security.service.AuthenticationService;
 import ru.yandex.finance_tracker.service.AccountService;
 
@@ -44,4 +45,14 @@ public class AccountController {
 
         return accountService.createAccount(userId, request);
     }
+
+    @GetMapping("/{accountId}/transaction")
+    @ResponseStatus(HttpStatus.OK)
+    public List<TransactionInfoDto> getTransaction(
+            @PathVariable(name = "accountId") Integer accountId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return accountService.getTransactionsByAccountId(accountId, page, size);
+    }
+
 }

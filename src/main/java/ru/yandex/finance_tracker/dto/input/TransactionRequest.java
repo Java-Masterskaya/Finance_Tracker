@@ -7,6 +7,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.yandex.finance_tracker.model.Currency;
 import ru.yandex.finance_tracker.model.Type;
 
 import java.time.LocalDate;
@@ -17,17 +18,17 @@ import java.time.LocalDate;
 public class TransactionRequest {
     @NotNull
     @PositiveOrZero
-    private Integer accountId;
+    private Long accountId;
     @NotNull
     private Type type;
     @NotNull
-    @PositiveOrZero
     private Float amount;
+    @NotNull
+    private Currency currency;
     @NotNull
     private String category;
     @JsonFormat(pattern = "yyyy-MM-dd")
     @NotNull
-    @PastOrPresent
     private LocalDate date;
     private String description;
 }

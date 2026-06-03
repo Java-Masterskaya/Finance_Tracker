@@ -1,7 +1,7 @@
 spring:
   # Конфигурация PostgreSQL БД для dev
   datasource:
-    url: jdbc:postgresql://localhost:${POSTGRES_PORT}/${POSTGRES_DB}
+    url: jdbc:postgresql://finance-db:5432/${POSTGRES_DB} #//localhost:${POSTGRES_PORT}/${POSTGRES_DB}
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -20,12 +20,12 @@ spring:
 
   # Redis конфигурация для кэширования
   redis:
-    port: ${REDIS_PORT}
+    port: redis #${REDIS_PORT}
     database: 1
 
   # Kafka конфигурация
   kafka:
-    bootstrap-servers: localhost:29092
+    bootstrap-servers: kafka:9092 #localhost:29092
     consumer:
       group-id: financeTrackerGroupDev
       auto-offset-reset: earliest

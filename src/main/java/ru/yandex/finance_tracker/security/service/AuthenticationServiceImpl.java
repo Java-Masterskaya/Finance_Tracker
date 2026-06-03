@@ -40,7 +40,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 UserRole.ROLE_USER
         );
         userRepository.save(user);
-        String token = jwtService.generateToken(user.getEmail());
+        String token = jwtService.generateToken(user.getId());
         return new JwtResponse(token, user.getEmail(), user.getRole());
     }
 
@@ -54,7 +54,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email(), request.password())
         );
-        String token = jwtService.generateToken(user.getEmail());
+        String token = jwtService.generateToken(user.getId());
         return new JwtResponse(token, user.getEmail(), user.getRole());
     }
 

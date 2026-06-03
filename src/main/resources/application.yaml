@@ -1,5 +1,10 @@
   # Общаяя информация о приложении
 spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/financeDB
+    username: dbuser
+    password: password
+
   application:
     name: finance-tracker
 
@@ -8,8 +13,8 @@ spring:
     banner-mode: "off"
 
   liquibase:
-    enabled: true
-    change-log: classpath:db/changelog/changelog-master.yaml
+    enabled: false #true
+    #change-log: classpath:db/changelog/changelog-master.yaml
 
 
   # Конфигурация JPA/Hibernate для PostgreSQL

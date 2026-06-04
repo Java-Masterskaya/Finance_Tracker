@@ -253,3 +253,43 @@ public ResponseEntity<Account> getAccount(@PathVariable Long accountId) {
 "accountBalance": 98500.00
 }
 ```
+### Централизованная валидация транзакций
+
+- Создан кастомный валидатор `@ValidTransaction` для централизованной проверки входных данных.
+- Проверки выполняются до записи в БД через `@Valid` в контроллере.
+- Добавлена проверка валюты (совпадение с валютой счёта).
+
+**Примеры ответов при ошибках**
+
+400 Bad Request — сумма меньше или равна нулю
+```json
+{
+    "timestamp": "2026-06-01T10:00:00",
+    "status": 400,
+    "error": "Validation Failed",
+    "message": "Amount must be positive",
+    "path": "/api/v1/transactions"
+}
+
+```
+
+400 Bad Request — дата в будущем
+```json
+{
+"timestamp": "2026-06-01T10:00:00",
+"status": 400,
+"error": "Validation Failed",
+"message": "The date cannot be a future date",
+"path": "/api/v1/transactions"
+}
+```
+400 Bad Request — несовпадение валют
+```json
+{
+"timestamp": "2026-06-01T10:00:00",
+"status": 400,
+"error": "Validation Failed",
+"message": "The transaction must have the same currency as the account with ID = 1",
+"path": "/api/v1/transactions"
+}
+```

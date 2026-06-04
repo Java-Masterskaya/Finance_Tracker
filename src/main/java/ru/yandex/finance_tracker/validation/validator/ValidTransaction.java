@@ -1,7 +1,8 @@
-package ru.yandex.finance_tracker.dto.validation;
+package ru.yandex.finance_tracker.validation.validator;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
+import ru.yandex.finance_tracker.validation.annotation.TransactionValidator;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -13,6 +14,8 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = TransactionValidator.class)
 public @interface ValidTransaction {
     String message() default "Validation error";
+
     Class<?>[] group() default {};
+
     Class<? extends Payload>[] payload() default {};
 }

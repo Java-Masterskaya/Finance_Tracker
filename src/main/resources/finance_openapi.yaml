@@ -165,6 +165,7 @@ components:
         - amount
         - category
         - date
+        - currency
       properties:
         accountId:
           type: integer
@@ -186,6 +187,11 @@ components:
         description:
           type: string
           example: "Покупка продуктов на неделю"
+        currency:
+          type: string
+          enum: [RUB, EUR, USD]
+          example: "RUB"
+          description: "Валюта транзакции"
 
     MonthlyReport:
       type: object

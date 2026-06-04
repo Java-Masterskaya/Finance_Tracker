@@ -20,7 +20,7 @@ import ru.yandex.finance_tracker.storage.TransactionRepository;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional(readOnly = true)
-public class TransactionServiceImpl implements TransactionService{
+public class TransactionServiceImpl implements TransactionService {
 
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
@@ -37,16 +37,19 @@ public class TransactionServiceImpl implements TransactionService{
 
         // ищем счет, по id счета и владельца (счет должен принадлежать конкретному владельцу)
         Account account = accountRepository.findByIdAndUserId(request.getAccountId(), userId)
-                .orElseThrow(()-> {
+                .orElseThrow(() -> {
                     log.warn("Счёт {} не найден или не принадлежит пользователю {}", request.getAccountId(), userId);
                     return new NotFoundException(ACCOUNT_NOT_FOUND_MESSAGE + request.getAccountId());
                 });
+
+        // проверка валюты
+        validateCurrency(request, account);
 
         // считаем баланс
         float newBalance = calculateNewBalance(account.getBalance(), request.getType(), request.getAmount());
 
         // Проверка только для расходов и если баланс становится отрицательным
-        if(request.getType() == Type.EXPENSE && newBalance < 0) {
+        if (request.getType() == Type.EXPENSE && newBalance < 0) {
             log.warn("Недостаточно средств. Баланс={}, Попытка списания={}",
                     account.getBalance(), request.getAmount());
             throw new InsufficientBalanceException(
@@ -74,21 +77,21 @@ public class TransactionServiceImpl implements TransactionService{
         return type == Type.INCOME ? currentBalance + amount : currentBalance - amount;
     }
 
-    @Transactional
-    public TransactionResponse createTransaction(TransactionRequest request) {
-        validateCurrency(request);  // ← добавить
-        // остальная логика
-    }
-
-    // необходимо добавлять метод проверки соответствия валют транзакции и счёта
-    // в методы создания и обновления транзакций
-    private void validateCurrency(TransactionRequest request) {
-        Account account = accountRepository.findById(request.getAccountId())
-                .orElseThrow(() -> new NotFoundException(
-                        "Account with ID = %d not found".formatted(request.getAccountId())
-                ));
-
+    /**
+     * Проверяет, соответствует ли валюта транзакции валюте счёта.
+     * <p>
+     * Если валюты не совпадают, выбрасывается исключение.
+     * Вызывается после того, как существование счёта подтверждено.
+     * </p>
+     *
+     * @param request запрос на создание транзакции, содержащий валюту операции
+     * @param account счёт, с которым связана транзакция, содержащий валюту счёта
+     * @throws CurrencyMismatchException если валюта операции не совпадает с валютой счёта
+     */
+    private void validateCurrency(TransactionRequest request, Account account) {
         if (!request.getCurrency().equals(account.getCurrency())) {
+            log.warn("Несовпадение валюты. Валюта счёта ID = {} - {}, валюта операции - {}",
+                    account.getId(), account.getCurrency(), request.getCurrency());
             throw new CurrencyMismatchException(request.getAccountId());
         }
     }

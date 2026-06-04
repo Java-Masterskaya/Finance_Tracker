@@ -1,8 +1,9 @@
-package ru.yandex.finance_tracker.dto.validation;
+package ru.yandex.finance_tracker.validation.annotation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import ru.yandex.finance_tracker.dto.input.TransactionRequest;
+import ru.yandex.finance_tracker.validation.validator.ValidTransaction;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -39,17 +40,6 @@ public class TransactionValidator implements ConstraintValidator<ValidTransactio
         return true;
     }
 
-    private void buildValidationError(ConstraintValidatorContext context,
-                                      String message,
-                                      String propertyNode,
-                                      Object... args) {
-        context.disableDefaultConstraintViolation();
-        context.buildConstraintViolationWithTemplate(String.format(message, args))
-                .addPropertyNode(propertyNode)
-                .addConstraintViolation();
-
-    }
-
     private boolean isValidTransactionDate(LocalDate date,
                                            ConstraintValidatorContext context) {
         if (date == null) {
@@ -67,5 +57,16 @@ public class TransactionValidator implements ConstraintValidator<ValidTransactio
         }
 
         return true;
+    }
+
+    private void buildValidationError(ConstraintValidatorContext context,
+                                      String message,
+                                      String propertyNode,
+                                      Object... args) {
+        context.disableDefaultConstraintViolation();
+        context.buildConstraintViolationWithTemplate(String.format(message, args))
+                .addPropertyNode(propertyNode)
+                .addConstraintViolation();
+
     }
 }

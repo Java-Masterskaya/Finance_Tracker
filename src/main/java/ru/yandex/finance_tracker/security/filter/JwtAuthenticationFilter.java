@@ -50,21 +50,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(7);
 
-        Long userId = jwtService.extractUserId(token);
+        try {
+            Long userId = jwtService.extractUserId(token);
 
-        if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new NotFoundException("User with ID = %d was not found".formatted(userId)));
+                User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new NotFoundException("User with ID = %d was not found".formatted(userId)));
 
-            UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+                UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
 
-            if (jwtService.validateToken(token)) {
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                if (jwtService.validateToken(token)) {
+                    UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
             }
+        } catch (Exception e) {
+            System.out.println("JWT processing error: " + e.getMessage());
         }
 
         filterChain.doFilter(request, response);

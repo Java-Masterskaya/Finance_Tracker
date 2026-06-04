@@ -81,7 +81,7 @@ databaseChangeLog:
                   type: VARCHAR(10)
                   constraints:
                     nullable: false
-                  remarks: "Валюта счета в виде аббревиатуры"
+                  remarks: "Валюта операции в виде аббревиатуры"
               - column:
                   name: amount
                   type: FLOAT

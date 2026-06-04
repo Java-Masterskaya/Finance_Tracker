@@ -39,6 +39,36 @@ docker compose down -v
 
 Пример переменных находится в `.env.example`.
 
+## CI/CD Pipeline
+
+Проект использует **GitHub Actions** для автоматической сборки и тестирования.
+
+### Workflow: Build and Tests
+
+Автоматически запускается для каждого **push** и **pull request** в ветку `main`.
+
+#### Stages:
+
+1. **Unit Tests** (`unit-tests`)
+   - Быстрые тесты без внешних зависимостей
+   - Публикует результаты в GitHub
+
+2. **Integration Tests** (`integration-tests`)
+   - Тесты с реальной БД (PostgreSQL через TestContainers)
+   - Прогон Liquibase миграций
+   - Тестовый профиль: `application-test.yaml`
+
+3. **Build JAR** (`build`)
+   - Собирает артефакт только после успешных тестов
+   - Сохраняет JAR в GitHub Artifacts на 5 дней
+
+### Status Checks (Branch Protection)
+
+⚠️ **Требование:** Перед merge в `main` необходимо, чтобы пройли **все** status checks:
+- ✅ Build and Tests / unit-tests
+- ✅ Build and Tests / integration-tests
+- ✅ Build and Tests / build
+
 # Миграция базы данных
 
 Осуществляется с помощью Liquibase, без использования rollback механики (для отмены предыдущего действия необходимо

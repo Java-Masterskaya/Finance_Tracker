@@ -2,18 +2,24 @@ package ru.yandex.finance_tracker.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.finance_tracker.dto.input.AccountCreateRequest;
 import ru.yandex.finance_tracker.dto.output.AccountInfoDto;
+import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
 import ru.yandex.finance_tracker.exception.NotFoundException;
 import ru.yandex.finance_tracker.mapper.AccountMapper;
+import ru.yandex.finance_tracker.mapper.TransactionMapper;
 import ru.yandex.finance_tracker.model.Account;
 import ru.yandex.finance_tracker.model.User;
 import ru.yandex.finance_tracker.storage.AccountRepository;
+import ru.yandex.finance_tracker.storage.TransactionRepository;
 import ru.yandex.finance_tracker.storage.UserRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +28,8 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final AccountMapper mapper;
+    private final TransactionRepository transactionRepository;
+    private final TransactionMapper transactionMapper;
 
     @Transactional(readOnly = true)
     @Override
@@ -55,5 +63,23 @@ public class AccountServiceImpl implements AccountService {
         Account savedAccount = accountRepository.save(account);
         log.info("Счет успешно создан и сохранен. ID нового счета: {}, Владелец ID: {}", savedAccount.getId(), userId);
         return mapper.toDto(savedAccount);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<TransactionInfoDto> getTransactionsByAccountId(Integer accountId, int page, int size) {
+        log.info("Запрос транзакций для аккаунта с ID: {}", accountId);
+        if (accountRepository.existsById(accountId)) {
+            PageRequest pageRequest = PageRequest.of(page, size, Sort.by("date").descending());
+            return transactionRepository
+                    .findByAccountId(accountId, pageRequest)
+                    .stream()
+                    .map(transactionMapper::toResponse)
+                    .collect(Collectors.toList());
+
+        } else {
+            log.error("Ошибка получения транзакций: аккаунта с ID {} не существует", accountId);
+            throw new NotFoundException("Account with ID %d not found".formatted(accountId));
+        }
     }
 }

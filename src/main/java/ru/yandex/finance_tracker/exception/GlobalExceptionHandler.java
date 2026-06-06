@@ -59,6 +59,21 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Обрабатывает исключение, возникающее при несовпадении валют.
+     * <p>
+     * Исключение выбрасывается, когда валюта операции не соответствует валюте счёта.
+     * Возвращает статус 400 (Bad Request) с информацией об ошибке.
+     * </p>
+     *
+     * @param ex исключение, содержащее сообщение о несовпадении валют
+     * @return ResponseEntity с подробностями валидации и статусом 400 (Bad Request)
+     */
+    @ExceptionHandler(CurrencyMismatchException.class)
+    public ResponseEntity<ApiError> handleValidationCurrency(final CurrencyMismatchException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Validation Failed", ex.getMessage());
+    }
+
+    /**
      * Обрабатывает ошибки валидации входных данных.
      * <p>
      * Перехватывает исключения, возникающие при нарушении ограничений (constraints),

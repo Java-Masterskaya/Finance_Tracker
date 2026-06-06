@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.finance_tracker.dto.input.TransactionRequest;
+import ru.yandex.finance_tracker.exception.CurrencyMismatchException;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
 import ru.yandex.finance_tracker.exception.InsufficientBalanceException;
 import ru.yandex.finance_tracker.exception.NotFoundException;
@@ -19,7 +20,7 @@ import ru.yandex.finance_tracker.storage.TransactionRepository;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional(readOnly = true)
-public class TransactionServiceImpl implements TransactionService{
+public class TransactionServiceImpl implements TransactionService {
 
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
@@ -36,16 +37,19 @@ public class TransactionServiceImpl implements TransactionService{
 
         // ищем счет, по id счета и владельца (счет должен принадлежать конкретному владельцу)
         Account account = accountRepository.findByIdAndUserId(request.getAccountId(), userId)
-                .orElseThrow(()-> {
+                .orElseThrow(() -> {
                     log.warn("Счёт {} не найден или не принадлежит пользователю {}", request.getAccountId(), userId);
                     return new NotFoundException(ACCOUNT_NOT_FOUND_MESSAGE + request.getAccountId());
                 });
+
+        // проверка валюты
+        validateCurrency(request, account);
 
         // считаем баланс
         float newBalance = calculateNewBalance(account.getBalance(), request.getType(), request.getAmount());
 
         // Проверка только для расходов и если баланс становится отрицательным
-        if(request.getType() == Type.EXPENSE && newBalance < 0) {
+        if (request.getType() == Type.EXPENSE && newBalance < 0) {
             log.warn("Недостаточно средств. Баланс={}, Попытка списания={}",
                     account.getBalance(), request.getAmount());
             throw new InsufficientBalanceException(
@@ -71,5 +75,24 @@ public class TransactionServiceImpl implements TransactionService{
     /** Считаем баланс, в зависимости от типа операции вычитаем или складываем */
     private float calculateNewBalance(float currentBalance, Type type, float amount) {
         return type == Type.INCOME ? currentBalance + amount : currentBalance - amount;
+    }
+
+    /**
+     * Проверяет, соответствует ли валюта транзакции валюте счёта.
+     * <p>
+     * Если валюты не совпадают, выбрасывается исключение.
+     * Вызывается после того, как существование счёта подтверждено.
+     * </p>
+     *
+     * @param request запрос на создание транзакции, содержащий валюту операции
+     * @param account счёт, с которым связана транзакция, содержащий валюту счёта
+     * @throws CurrencyMismatchException если валюта операции не совпадает с валютой счёта
+     */
+    private void validateCurrency(TransactionRequest request, Account account) {
+        if (!request.getCurrency().equals(account.getCurrency())) {
+            log.warn("Несовпадение валюты. Валюта счёта ID = {} - {}, валюта операции - {}",
+                    account.getId(), account.getCurrency(), request.getCurrency());
+            throw new CurrencyMismatchException(request.getAccountId());
+        }
     }
 }

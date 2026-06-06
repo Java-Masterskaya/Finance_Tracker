@@ -66,7 +66,7 @@ databaseChangeLog:
                   remarks: "id счета для транзакции"
               - column:
                   name: user_id
-                  type: INT
+                  type: BIGINT
                   constraints:
                     nullable: false
                   remarks: "id пользователя (для прямой связи и изоляции)"
@@ -76,6 +76,12 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                   remarks: "Тип операции"
+              - column:
+                  name: currency
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+                  remarks: "Валюта операции в виде аббревиатуры"
               - column:
                   name: amount
                   type: FLOAT

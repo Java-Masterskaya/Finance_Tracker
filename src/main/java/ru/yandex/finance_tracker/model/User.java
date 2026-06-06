@@ -3,7 +3,6 @@ package ru.yandex.finance_tracker.model;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
 
@@ -44,14 +43,5 @@ public class User {
         this.passwordHash = passwordHash;
         this.firstName = firstName;
         this.role = role;
-    }
-
-    public UserDetails toUserDetails() {
-        return org.springframework.security.core.userdetails.User
-                .builder()
-                .username(this.email)
-                .password(this.passwordHash)
-                .authorities(this.role.toAuthority())
-                .build();
     }
 }

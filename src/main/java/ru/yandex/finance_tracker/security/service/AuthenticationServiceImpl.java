@@ -4,11 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.finance_tracker.exception.AccessDeniedException;
 import ru.yandex.finance_tracker.exception.NotFoundException;
 import ru.yandex.finance_tracker.exception.UserAlreadyExistsException;
 import ru.yandex.finance_tracker.model.User;
@@ -56,27 +53,5 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         );
         String token = jwtService.generateToken(user.getId());
         return new JwtResponse(token, user.getEmail(), user.getRole());
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public void checkAuthority(Long userIdFromHeader, UserDetails userDetails) {
-        String emailFromToken = userDetails.getUsername();
-        log.debug("Проверка соответствия почты(токена): {} и заголовка userId: {}", emailFromToken, userIdFromHeader);
-
-        User user = userRepository.findByEmailIgnoreCase(emailFromToken)
-                .orElseThrow(() -> {
-                    log.error("Проверка авторизации не пройдена: " +
-                            "Пользователь с адресом электронной почты {} не найден в базе данных", emailFromToken);
-                    return new NotFoundException("User with email = %s was not found".formatted(emailFromToken));
-                });
-
-        if (!user.getId().equals(userIdFromHeader)) {
-            log.warn("Пользователь (ID: {}, Email: {}) попытался получить доступ к ресурсам пользователя (ID: {})",
-                    user.getId(), emailFromToken, userIdFromHeader);
-            throw new AccessDeniedException(
-                    "Access denied: You do not have permission to access or modify another user's resources");
-        }
-        log.debug("Авторизация подтверждена для пользователя: {}", user.getId());
     }
 }

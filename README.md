@@ -156,8 +156,6 @@ Content-Type: application/json
 ```java
 // ID текущего пользователя
 Long userId = securityUtils.getCurrentUserId();
-// объект текущего пользователя
-User user = securityUtils.getCurrentUser();
 ```
 
 ### Изоляция данных
@@ -184,7 +182,6 @@ public ResponseEntity<Account> getAccount(@PathVariable Long accountId) {
 Для всех защищенных эндпоинтов обязательны заголовки:
 
 * `Authorization: Bearer <token>`
-* `userId: <ID пользователя>`
 
 ### Работа со счетами (/api/v1/accounts)
 

@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 public @interface ValidTransaction {
     String message() default "Validation error";
 
-    Class<?>[] group() default {};
+    Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
 }

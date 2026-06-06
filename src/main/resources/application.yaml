@@ -13,7 +13,7 @@ spring:
 
   liquibase:
     enabled: true
-    #change-log: classpath:db/changelog/changelog-master.yaml
+    change-log: classpath:db/changelog/changelog-master.yaml
 
 
   # Конфигурация JPA/Hibernate для PostgreSQL

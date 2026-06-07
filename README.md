@@ -250,6 +250,38 @@ public ResponseEntity<Account> getAccount(@PathVariable Long accountId) {
 "accountBalance": 98500.00
 }
 ```
+
+### Получение сводного отчета за месяц (/api/v1/reports/monthly)
+
+* Метод: `GET`
+* Заголовок `Authorization: Bearer <token>` обязателен для получения своих счетов
+* Обязательные параметры `year` (от 2000 до 2100), `month`(от 1 до 12).  
+
+
+* Пример запроса: `GET /api/v1/reports/monthly?year=2026&month=6`
+* Пример ответа (200 OK):
+
+```JSON
+{
+  "totalIncome": 200000,
+  "totalExpense": 45000,
+  "expenseByCategory": [
+    {
+      "category": "Супермаркеты",
+      "totalExpense": 25000.0
+    },
+    {
+      "category": "Транспорт",
+      "totalExpense": 5000.0
+    },
+    {
+      "category": "ЖКХ",
+      "totalExpense": 15000.0
+    }
+  ]
+}
+```
+
 ### Централизованная валидация транзакций
 
 - Создан кастомный валидатор `@ValidTransaction` для централизованной проверки входных данных.

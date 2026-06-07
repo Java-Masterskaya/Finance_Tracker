@@ -67,7 +67,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<TransactionInfoDto> getTransactionsByAccountId(Integer accountId, int page, int size) {
+    public List<TransactionInfoDto> getTransactionsByAccountId(Long accountId, int page, int size) {
         log.info("Запрос транзакций для аккаунта с ID: {}", accountId);
         if (accountRepository.existsById(accountId)) {
             PageRequest pageRequest = PageRequest.of(page, size, Sort.by("date").descending());

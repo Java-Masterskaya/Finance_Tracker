@@ -21,12 +21,14 @@
               "if (pm.response.code === 201 || pm.response.code === 200) {",
               "    var jsonData = pm.response.json();",
               "    if (jsonData.token) {",
-              "        pm.globals.set(\"jwt_token\", \"Bearer \" + jsonData.token);",
+              "        pm.collectionVariables.set(\"jwt_token\", \"Bearer \" + jsonData.token);",
               "        console.log(\"Токен после регистрации сохранен в глобальные переменные\");",
               "    }",
               "}"
             ],
-            "type": "text/javascript"
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
           }
         }
       ],
@@ -43,12 +45,10 @@
           }
         },
         "url": {
-          "raw": "http://localhost:8080/api/registration",
-          "protocol": "http",
+          "raw": "{{base_url}}/api/registration",
           "host": [
-            "localhost"
+            "{{base_url}}"
           ],
-          "port": "8080",
           "path": [
             "api",
             "registration"
@@ -68,11 +68,13 @@
               "    pm.response.to.have.status(200);",
               "    ",
               "    var jsonData = pm.response.json();",
-              "    pm.globals.set(\"jwt_token\", \"Bearer \" + jsonData.token);",
+              "    pm.collectionVariables.set(\"jwt_token\", \"Bearer \" + jsonData.token);",
               "    console.log(\"Токен после входа обновлен\");",
               "});"
             ],
-            "type": "text/javascript"
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
           }
         }
       ],
@@ -89,12 +91,10 @@
           }
         },
         "url": {
-          "raw": "http://localhost:8080/api/login",
-          "protocol": "http",
+          "raw": "{{base_url}}/api/login",
           "host": [
-            "localhost"
+            "{{base_url}}"
           ],
-          "port": "8080",
           "path": [
             "api",
             "login"
@@ -117,23 +117,20 @@
               "if (pm.response.code === 201 && pm.response.text()) {",
               "    var jsonData = pm.response.json();",
               "    if (jsonData.id) {",
-              "        pm.globals.set(\"last_account_id\", jsonData.id);",
+              "        pm.collectionVariables.set(\"last_account_id\", jsonData.id);",
               "        console.log(\"ID нового счета сохранен: \" + jsonData.id);",
               "    }",
               "}"
             ],
-            "type": "text/javascript"
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
           }
         }
       ],
       "request": {
         "method": "POST",
         "header": [
-          {
-            "key": "userId",
-            "value": "2",
-            "type": "text"
-          },
           {
             "key": "Authorization",
             "value": "{{jwt_token}}",
@@ -150,12 +147,10 @@
           }
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/accounts",
-          "protocol": "http",
+          "raw": "{{base_url}}/api/v1/accounts",
           "host": [
-            "localhost"
+            "{{base_url}}"
           ],
-          "port": "8080",
           "path": [
             "api",
             "v1",
@@ -176,6 +171,15 @@
               "    pm.response.to.have.status(200);",
               "});"
             ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "packages": {},
             "type": "text/javascript"
           }
         }
@@ -184,23 +188,16 @@
         "method": "GET",
         "header": [
           {
-            "key": "userId",
-            "value": "2",
-            "type": "text"
-          },
-          {
             "key": "Authorization",
             "value": "{{jwt_token}}",
             "type": "text"
           }
         ],
         "url": {
-          "raw": "http://localhost:8080/api/v1/accounts",
-          "protocol": "http",
+          "raw": "{{base_url}}/api/v1/accounts",
           "host": [
-            "localhost"
+            "{{base_url}}"
           ],
-          "port": "8080",
           "path": [
             "api",
             "v1",
@@ -219,9 +216,11 @@
             "exec": [
               "// Генерируем случайный UUID для ключа идемпотентности перед каждым запросом",
               "var uuid = require('crypto-js').lib.WordArray.random(16).toString();",
-              "pm.globals.set(\"idempotency_key\", uuid);"
+              "pm.collectionVariables.set(\"idempotency_key\", uuid);"
             ],
-            "type": "text/javascript"
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
           }
         },
         {
@@ -238,18 +237,15 @@
               "    pm.expect(jsonData.amount).to.eql(1500.0);",
               "});"
             ],
-            "type": "text/javascript"
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
           }
         }
       ],
       "request": {
         "method": "POST",
         "header": [
-          {
-            "key": "userId",
-            "value": "2",
-            "type": "text"
-          },
           {
             "key": "Authorization",
             "value": "{{jwt_token}}",
@@ -263,7 +259,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"accountId\": {{last_account_id}},\n  \"type\": \"EXPENSE\",\n  \"amount\": 1500.0,\n  \"category\": \"Супермаркеты\",\n  \"date\": \"2026-05-24\",\n  \"description\": \"Покупка продуктов\"\n}",
+          "raw": "{\n  \"accountId\": {{last_account_id}},\n  \"type\": \"EXPENSE\",\n  \"amount\": 500.0,\n  \"category\": \"Супермаркет\",\n  \"currency\": \"RUB\",\n  \"date\": \"2026-05-24\",\n  \"description\": \"Покупка продуктов\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -271,12 +267,10 @@
           }
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/transactions",
-          "protocol": "http",
+          "raw": "{{base_url}}/api/v1/transactions",
           "host": [
-            "localhost"
+            "{{base_url}}"
           ],
-          "port": "8080",
           "path": [
             "api",
             "v1",
@@ -285,6 +279,141 @@
         }
       },
       "response": []
+    },
+    {
+      "name": "6. History account",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Доступ разрешен\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{jwt_token}}",
+            "type": "text"
+          },
+          {
+            "key": "year",
+            "value": "2026",
+            "type": "text",
+            "disabled": true
+          },
+          {
+            "key": "month",
+            "value": "05",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/accounts/{{last_account_id}}/transaction",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "accounts",
+            "{{last_account_id}}",
+            "transaction"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. Account report",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Доступ разрешен\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/reports/monthly?year=2026&month=05",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "reports",
+            "monthly"
+          ],
+          "query": [
+            {
+              "key": "year",
+              "value": "2026"
+            },
+            {
+              "key": "month",
+              "value": "05"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": ""
     }
   ]
 }

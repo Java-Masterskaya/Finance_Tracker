@@ -156,6 +156,8 @@ Content-Type: application/json
 ```java
 // ID текущего пользователя
 Long userId = securityUtils.getCurrentUserId();
+// объект текущего пользователя
+User user = securityUtils.getCurrentUser();
 ```
 
 ### Изоляция данных
@@ -182,6 +184,7 @@ public ResponseEntity<Account> getAccount(@PathVariable Long accountId) {
 Для всех защищенных эндпоинтов обязательны заголовки:
 
 * `Authorization: Bearer <token>`
+* `userId: <ID пользователя>`
 
 ### Работа со счетами (/api/v1/accounts)
 
@@ -322,3 +325,22 @@ public ResponseEntity<Account> getAccount(@PathVariable Long accountId) {
 "path": "/api/v1/transactions"
 }
 ```
+---
+
+## Документация и Тестирование (API & QA)
+
+В проекте настроена автоматическая документация API и подготовлены инструменты для быстрого старта тестирования.
+
+### Спецификация API (OpenAPI / Swagger)
+* **Файл контракта:** `src/main/resurces/finance_openapi.yaml` (содержит актуальное описание DTO и эндпоинтов).
+* **Примеры запросов/ответов (Payloads):** Примеры валидных JSON-файлов для создания счетов и транзакций находятся в папке `postman/payloads/`.
+
+### Интеграционные тесты (Postman)
+Для проверки базового функционала приложения (Happy Path) подготовлена автоматизированная коллекция тестов.
+* **Файл коллекции:** `postman/Finans_tracker.postman_collection.json`
+
+**Как запустить:**
+1. Импортируйте файл коллекции в Postman.
+2. Убедитесь, что **локальный** бэкенд и база данных запущены (`localhost:8080`).
+3. Запустите коллекцию целиком через **Postman Collection Runner**.
+4. Скрипты автоматически свяжут шаги (зарегистрируют пользователя, авторизуют его, создадут счет и привяжут к нему транзакцию). Данные между запросами пробрасываются автоматически.

@@ -89,13 +89,6 @@ paths:
       summary: Получить список счетов пользователя
       security:
         - BearerAuth: []
-      parameters:
-        - name: userId
-          in: header
-          required: true
-          schema:
-            type: integer
-            format: int64
       responses:
         '200':
           description: Успешный ответ со списком счетов пользователя
@@ -121,13 +114,6 @@ paths:
       summary: Создание нового счета
       security:
         - BearerAuth: []
-      parameters:
-        - name: userId
-          in: header
-          required: true
-          schema:
-            type: integer
-            format: int64
       requestBody:
         required: true
         content:
@@ -159,18 +145,13 @@ paths:
       security:
         - BearerAuth: []
       parameters:
-        - name: userId
-          in: header
-          required: true
-          schema:
-            type: integer
-            format: int64
         - name: X-Idempotency-Key
           in: header
           required: true
           schema:
             type: string
             format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
       requestBody:
         required: true
         content:
@@ -207,38 +188,47 @@ paths:
                 status: 409
                 timestamp: "2026-05-29 12:00:00"
 
-  /api/v1/accounts/{accountId}/transactions:
+  /api/v1/accounts/{accountId}/transaction:
     get:
       summary: Получить историю транзакций по конкретному счету
+      security:
+        - BearerAuth: [ ]
       parameters:
         - name: accountId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
+            minimum: 1
         - name: page
           in: query
           schema:
             type: integer
             default: 0
+            minimum: 0
         - name: size
           in: query
           schema:
             type: integer
             default: 20
+            minimum: 1
       responses:
         '200':
-          description: Страница с транзакциями
+          description: Успешный ответ со списком транзакций
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransactionInfoDto'
 
   /api/v1/reports/monthly:
     get:
       summary: Получить сводный отчет за месяц
+      security:
+        - BearerAuth: [ ]
       parameters:
-        - name: userId
-          in: header
-          required: true
-          schema:
-            type: integer
         - name: year
           in: query
           required: true
@@ -252,7 +242,7 @@ paths:
             type: integer
             minimum: 1
             maximum: 12
-            example: 4
+            example: 6
       responses:
         '200':
           description: Отчет успешно сгенерирован
@@ -365,6 +355,7 @@ components:
         - accountId
         - type
         - amount
+        - currency
         - category
         - date
       properties:
@@ -381,6 +372,10 @@ components:
           format: float
           minimum: 0.01
           example: 1500.0
+        currency:
+          type: string
+          enum: [ RUB, EUR, USD ]
+          example: "RUB"
         category:
           type: string
           example: "Супермаркеты"
@@ -396,6 +391,10 @@ components:
       type: object
       properties:
         transactionId:
+          type: integer
+          format: int64
+          example: 1
+        accountId:
           type: integer
           format: int64
           example: 1
@@ -417,13 +416,6 @@ components:
         description:
           type: string
           example: "Покупка продуктов"
-        accountId:
-          type: integer
-          format: int64
-          example: 1
-        accountName:
-          type: string
-          example: "Зарплатная карта"
         accountBalance:
           type: number
           format: float
@@ -441,14 +433,17 @@ components:
           format: float
           example: 45000.0
         expenseByCategory:
-          type: object
-          additionalProperties:
-            type: number
-            format: float
-          example:
-            "Супермаркеты": 25000.0
-            "Транспорт": 5000.0
-            "ЖКХ": 15000.0
+          type: array
+          items:
+            type: object
+            properties:
+              category:
+                type: string
+                example: "Супермаркеты"
+              totalExpense:
+                type: number
+                format: float
+                example: 25000.0
 
     ApiError:
       type: object

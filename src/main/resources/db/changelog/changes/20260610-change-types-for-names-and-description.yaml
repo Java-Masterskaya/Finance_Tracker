@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260610-001
+      author: AlexanderChum
+      comment: "Изменение типа колонок name (accounts) и description (transactions)
+      для того чтобы убрать ограничения на длину вводимого текста"
+      changes:
+        - modifyDataType:
+            tableName: accounts
+            columnName: name
+            newDataType: VARCHAR
+        - modifyDataType:
+            tableName: transactions
+            columnName: description
+            newDataType: TEXT

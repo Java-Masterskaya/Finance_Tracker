@@ -1,0 +1,8 @@
+{
+  "accountId": 3,
+  "type": "EXPENSE",
+  "amount": 1500.0,
+  "category": "Супермаркеты",
+  "date": "2026-05-24",
+  "description": "Покупка продуктов"
+}

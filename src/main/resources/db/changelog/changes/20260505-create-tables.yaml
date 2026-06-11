@@ -77,6 +77,12 @@ databaseChangeLog:
                     nullable: false
                   remarks: "Тип операции"
               - column:
+                  name: currency
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+                  remarks: "Валюта операции в виде аббревиатуры"
+              - column:
                   name: amount
                   type: FLOAT
                   constraints:

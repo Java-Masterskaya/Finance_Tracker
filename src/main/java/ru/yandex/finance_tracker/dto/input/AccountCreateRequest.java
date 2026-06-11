@@ -12,7 +12,6 @@ import ru.yandex.finance_tracker.model.Currency;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AccountCreateRequest {
-    @NotNull
     @NotBlank
     private String name;
     @NotNull

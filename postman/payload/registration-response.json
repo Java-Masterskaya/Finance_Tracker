@@ -1,0 +1,5 @@
+{
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "email": "user@example.com",
+  "role": "ROLE_USER"
+}

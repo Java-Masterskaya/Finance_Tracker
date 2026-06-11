@@ -1,11 +1,14 @@
 package ru.yandex.finance_tracker.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ServerErrorException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
@@ -56,6 +59,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiError> handleAccessDeniedException(final AccessDeniedException ex) {
         return buildResponse(HttpStatus.FORBIDDEN, "Access Denied", ex.getMessage());
+    }
+
+    /**
+     * Обрабатывает исключение, возникающее при несовпадении валют.
+     * <p>
+     * Исключение выбрасывается, когда валюта операции не соответствует валюте счёта.
+     * Возвращает статус 400 (Bad Request) с информацией об ошибке.
+     * </p>
+     *
+     * @param ex исключение, содержащее сообщение о несовпадении валют
+     * @return ResponseEntity с подробностями валидации и статусом 400 (Bad Request)
+     */
+    @ExceptionHandler(CurrencyMismatchException.class)
+    public ResponseEntity<ApiError> handleValidationCurrency(final CurrencyMismatchException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Validation Failed", ex.getMessage());
     }
 
     /**
@@ -115,6 +133,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ServerErrorException.class)
     public ResponseEntity<ApiError> handleServerErrorException(final ServerErrorException ex) {
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Fail during program run", ex.getMessage());
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiError> handleConstraintViolation(ConstraintViolationException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Validation Failed", ex.getMessage());
+    }
+
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiError> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String message = String.format("Parameter '%s' should be of type %s",
+                ex.getName(), ex.getRequiredType().getSimpleName());
+        return buildResponse(HttpStatus.BAD_REQUEST, "Bad Request", message);
     }
 
     private ResponseEntity<ApiError> buildResponse(HttpStatus status, String error, String message) {

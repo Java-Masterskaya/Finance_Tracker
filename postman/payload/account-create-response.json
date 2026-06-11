@@ -1,0 +1,7 @@
+{
+  "id": 1,
+  "name": "Зарплатная карта",
+  "currency": "RUB",
+  "balance": 10000.0,
+  "userId": 2
+}

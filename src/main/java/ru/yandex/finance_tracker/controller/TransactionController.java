@@ -5,14 +5,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.finance_tracker.dto.input.TransactionRequest;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
 import ru.yandex.finance_tracker.exception.IdempotencyKeyException;
 import ru.yandex.finance_tracker.exception.ServerErrorException;
 import ru.yandex.finance_tracker.idempotency.IdempotencyService;
-import ru.yandex.finance_tracker.security.service.AuthenticationService;
+import ru.yandex.finance_tracker.security.dto.AuthInfo;
 import ru.yandex.finance_tracker.service.TransactionService;
 import ru.yandex.finance_tracker.validation.IdempotencyValidator;
 
@@ -24,15 +23,13 @@ import java.util.Optional;
 @Slf4j
 public class TransactionController {
     private final TransactionService transactionService;
-    private final AuthenticationService authenticationService;
     private final IdempotencyService idempotencyService;
     private final IdempotencyValidator idempotencyValidator;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public TransactionInfoDto createTransaction(@RequestHeader("userId") Long userId,
-                                                @Valid @RequestBody TransactionRequest request,
-                                                @AuthenticationPrincipal UserDetails userDetails,
+    public TransactionInfoDto createTransaction(@Valid @RequestBody TransactionRequest request,
+                                                @AuthenticationPrincipal AuthInfo authInfo,
                                                 @RequestHeader(value = "X-Idempotency-Key") String iKey) {
 
         log.debug("Валидация ключа идемпотентности ikey={}", iKey);
@@ -49,10 +46,9 @@ public class TransactionController {
         }
 
         try {
-            log.info("POST /v1/transactions started for userid={}", userId);
+            log.info("POST /v1/transactions started for userid={}", authInfo.getId());
 
-            authenticationService.checkAuthority(userId, userDetails);
-            TransactionInfoDto response = transactionService.createTransaction(userId, request);
+            TransactionInfoDto response = transactionService.createTransaction(authInfo.getId(), request);
             idempotencyService.cacheResponse(iKey, response);
             log.info("POST /v1/transactions finished: transactionId={}", response.transactionId());
             return response;

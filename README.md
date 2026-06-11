@@ -283,3 +283,94 @@ public ResponseEntity<Account> getAccount(@PathVariable Long accountId) {
 "accountBalance": 98500.00
 }
 ```
+
+### Получение сводного отчета за месяц (/api/v1/reports/monthly)
+
+* Метод: `GET`
+* Заголовок `Authorization: Bearer <token>` обязателен для получения своих счетов
+* Обязательные параметры `year` (от 2000 до 2100), `month`(от 1 до 12).  
+
+
+* Пример запроса: `GET /api/v1/reports/monthly?year=2026&month=6`
+* Пример ответа (200 OK):
+
+```JSON
+{
+  "totalIncome": 200000,
+  "totalExpense": 45000,
+  "expenseByCategory": [
+    {
+      "category": "Супермаркеты",
+      "totalExpense": 25000.0
+    },
+    {
+      "category": "Транспорт",
+      "totalExpense": 5000.0
+    },
+    {
+      "category": "ЖКХ",
+      "totalExpense": 15000.0
+    }
+  ]
+}
+```
+
+### Централизованная валидация транзакций
+
+- Создан кастомный валидатор `@ValidTransaction` для централизованной проверки входных данных.
+- Проверки выполняются до записи в БД через `@Valid` в контроллере.
+- Добавлена проверка валюты (совпадение с валютой счёта).
+
+**Примеры ответов при ошибках**
+
+400 Bad Request — сумма меньше или равна нулю
+```json
+{
+    "timestamp": "2026-06-01T10:00:00",
+    "status": 400,
+    "error": "Validation Failed",
+    "message": "Amount must be positive",
+    "path": "/api/v1/transactions"
+}
+
+```
+
+400 Bad Request — дата в будущем
+```json
+{
+"timestamp": "2026-06-01T10:00:00",
+"status": 400,
+"error": "Validation Failed",
+"message": "The date cannot be a future date",
+"path": "/api/v1/transactions"
+}
+```
+400 Bad Request — несовпадение валют
+```json
+{
+"timestamp": "2026-06-01T10:00:00",
+"status": 400,
+"error": "Validation Failed",
+"message": "The transaction must have the same currency as the account with ID = 1",
+"path": "/api/v1/transactions"
+}
+```
+---
+
+## Документация и Тестирование (API & QA)
+
+В проекте настроена автоматическая документация API и подготовлены инструменты для быстрого старта тестирования.
+
+### Спецификация API (OpenAPI / Swagger)
+* **Файл контракта:** `src/main/resurces/finance_openapi.yaml` (содержит актуальное описание DTO и эндпоинтов).
+* **Примеры запросов/ответов (Payloads):** Примеры валидных JSON-файлов для создания счетов и транзакций находятся в папке `postman/payloads/`.
+
+### Интеграционные тесты (Postman)
+Для проверки базового функционала приложения (Happy Path) подготовлена автоматизированная коллекция тестов.
+* **Файл коллекции:** `postman/Finans_tracker.postman_collection.json`
+
+**Как запустить:**
+1. Импортируйте файл коллекции в Postman.
+2. Убедитесь, что **локальный** бэкенд и база данных запущены (`localhost:8080`).
+3. Запустите коллекцию целиком через **Postman Collection Runner**.
+4. Скрипты автоматически свяжут шаги (зарегистрируют пользователя, авторизуют его, создадут счет и привяжут к нему транзакцию). Данные между запросами пробрасываются автоматически.

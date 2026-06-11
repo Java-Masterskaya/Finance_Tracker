@@ -1,16 +1,17 @@
 package ru.yandex.finance_tracker.controller;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.finance_tracker.dto.input.AccountCreateRequest;
 import ru.yandex.finance_tracker.dto.output.AccountInfoDto;
-import ru.yandex.finance_tracker.security.service.AuthenticationService;
+import ru.yandex.finance_tracker.security.dto.AuthInfo;
+import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
 import ru.yandex.finance_tracker.service.AccountService;
 
 import java.util.List;
@@ -21,27 +22,28 @@ import java.util.List;
 @Validated
 public class AccountController {
     private final AccountService accountService;
-    private final AuthenticationService authenticationService;
 
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<AccountInfoDto> getUserAccounts(
-            @RequestHeader("userId") @NotNull Long userId,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        authenticationService.checkAuthority(userId, userDetails);
-
-        return accountService.getAccountsByUserId(userId);
+    public List<AccountInfoDto> getUserAccounts(@AuthenticationPrincipal AuthInfo authInfo) {
+        return accountService.getAccountsByUserId(authInfo.getId());
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public AccountInfoDto createAccount(
-            @RequestHeader("userId") @NotNull Long userId,
-            @Valid @RequestBody AccountCreateRequest request,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        authenticationService.checkAuthority(userId, userDetails);
+    public AccountInfoDto createAccount(@Valid @RequestBody AccountCreateRequest request,
+                                        @AuthenticationPrincipal AuthInfo authInfo) {
+        return accountService.createAccount(authInfo.getId(), request);
+    }
 
-        return accountService.createAccount(userId, request);
+    @GetMapping("/{accountId}/transaction")
+    @ResponseStatus(HttpStatus.OK)
+    public List<TransactionInfoDto> getTransaction(
+            @PathVariable(name = "accountId") @Positive Long accountId,
+            @RequestParam(defaultValue = "0") @PositiveOrZero int page,
+            @RequestParam(defaultValue = "20") @Positive int size,
+            @AuthenticationPrincipal AuthInfo authInfo) {
+        return accountService.getTransactionsByAccountId(authInfo.getId(), accountId, page, size);
     }
 }

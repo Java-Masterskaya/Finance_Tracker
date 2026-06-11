@@ -4,32 +4,116 @@ info:
   version: 1.0.0
   description: API для приложения учета личных финансов
 paths:
+  /api/registration:
+    post:
+      summary: Регистрация нового пользователя
+      description: Создает аккаунт и возвращает JWT-токен.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationRequest'
+      responses:
+        '201':
+          description: Пользователь успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JwtResponse'
+        '400':
+          description: Ошибка валидации полей
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error: "Validation Failed"
+                message: "password: User password length must be between 10 and 60 characters"
+                status: 400
+                timestamp: "2026-05-29 12:00:00"
+        '409':
+          description: Конфликт — email занят
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error: "Conflict"
+                message: "User with email user@example.com already exists"
+                status: 409
+                timestamp: "2026-05-29 12:00:00"
+
+  /api/login:
+    post:
+      summary: Аутентификация пользователя (Вход в личный кабинет)
+      description: Проверяет учетные данные и возвращает JWT-токен.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Успешный вход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JwtResponse'
+        '404':
+          description: Пользователь не найден (не зарегистрирован)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error: "Resource Not Found"
+                message: "User with email = user2@example.com was not found"
+                status: 404
+                timestamp: "2026-05-29 12:00:00"
+        '403':
+          description: Ошибка ввода пароля
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error: "Forbidden"
+                message: "/api/login"
+                status: 403
+                timestamp: "2026-05-29 12:00:00"
+
   /api/v1/accounts:
     get:
       summary: Получить список счетов пользователя
-      parameters:
-        - name: userId
-          in: header
-          required: true
-          schema:
-            type: integer
+      security:
+        - BearerAuth: []
       responses:
         '200':
-          description: Успешный ответ
+          description: Успешный ответ со списком счетов пользователя
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Account'
+                  $ref: '#/components/schemas/AccountInfoDto'
+        '403':
+          description: Не соответствие userId и токена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error: "Access Denied"
+                message: "Access denied: You do not have permission to access or modify another user's resources"
+                status: 403
+                timestamp: "2026-05-29 12:00:00"
+
     post:
-      summary: Создать новый счет
-      parameters:
-        - name: userId
-          in: header
-          required: true
-          schema:
-            type: integer
+      summary: Создание нового счета
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -39,22 +123,35 @@ paths:
       responses:
         '201':
           description: Счет успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountInfoDto'
+        '403':
+          description: Не соответствие userId и токена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error: "Access Denied"
+                message: "Access denied: You do not have permission to access or modify another user's resources"
+                status: 403
+                timestamp: "2026-05-29 12:00:00"
 
   /api/v1/transactions:
     post:
-      summary: Добавить новую транзакцию (доход/расход)
+      summary: Добавить новую транзакцию с поддержкой идемпотентности
+      security:
+        - BearerAuth: []
       parameters:
-        - name: userId
-          in: header
-          required: true
-          schema:
-            type: integer
         - name: X-Idempotency-Key
           in: header
           required: true
-          description: "Ключ идемпотентности"
           schema:
             type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
       requestBody:
         required: true
         content:
@@ -64,41 +161,74 @@ paths:
       responses:
         '201':
           description: Транзакция успешно добавлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionInfoDto'
         '400':
-          description: Ошибка валидации
+          description: Ошибка валидации или отсутствует Idempotency Key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error: "Idempotency key already in use"
+                message: "Idempotency key is missing"
+                status: 400
+                timestamp: "2026-05-29 12:00:00"
+        '409':
+          description: Попытка отправить запрос с одним и тем же ключом идемпотентности
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error: "Idempotency key already in use"
+                message: "Duplicate request in progress"
+                status: 409
+                timestamp: "2026-05-29 12:00:00"
 
-  /api/v1/accounts/{accountId}/transactions:
+  /api/v1/accounts/{accountId}/transaction:
     get:
       summary: Получить историю транзакций по конкретному счету
+      security:
+        - BearerAuth: [ ]
       parameters:
         - name: accountId
           in: path
           required: true
           schema:
             type: integer
+            format: int64
+            minimum: 1
         - name: page
           in: query
           schema:
             type: integer
             default: 0
+            minimum: 0
         - name: size
           in: query
           schema:
             type: integer
             default: 20
+            minimum: 1
       responses:
         '200':
-          description: Страница с транзакциями
+          description: Успешный ответ со списком транзакций
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransactionInfoDto'
 
   /api/v1/reports/monthly:
     get:
       summary: Получить сводный отчет за месяц
+      security:
+        - BearerAuth: [ ]
       parameters:
-        - name: userId
-          in: header
-          required: true
-          schema:
-            type: integer
         - name: year
           in: query
           required: true
@@ -112,7 +242,7 @@ paths:
             type: integer
             minimum: 1
             maximum: 12
-            example: 4
+            example: 6
       responses:
         '200':
           description: Отчет успешно сгенерирован
@@ -121,24 +251,65 @@ paths:
               schema:
                 $ref: '#/components/schemas/MonthlyReport'
 
+
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
-    Account:
+    RegistrationRequest:
+      type: object
+      required:
+        - email
+        - password
+        - firstName
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 6
+          maxLength: 60
+          example: "user@example.com"
+        password:
+          type: string
+          minLength: 10
+          maxLength: 60
+          example: "password1234567890"
+        firstName:
+          type: string
+          minLength: 2
+          maxLength: 30
+          example: "Иван"
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        password:
+          type: string
+          example: "password1234567890"
+
+    JwtResponse:
       type: object
       properties:
-        id:
-          type: integer
-          example: 1
-        name:
+        token:
           type: string
-          example: "Зарплатная карта"
-        currency:
+          example: "eyJhbGciOiJIUzI1NiIs..."
+        email:
           type: string
-          example: "RUB"
-        balance:
-          type: number
-          format: float
-          example: 150500.50
+          example: "user@example.com"
+        role:
+          type: string
+          example: "ROLE_USER"
 
     AccountCreateRequest:
       type: object
@@ -149,13 +320,34 @@ components:
       properties:
         name:
           type: string
+          example: "Инвестиционный счет"
         currency:
           type: string
+          enum: [RUB, EUR, USD]
           example: "RUB"
         initialBalance:
           type: number
           format: float
-          example: 0.0
+          example: 5000.0
+
+    AccountInfoDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: "Зарплатная карта"
+        currency:
+          type: string
+          enum: [RUB, EUR, USD]
+          example: "RUB"
+        balance:
+          type: number
+          format: float
+          example: 150500.50
 
     TransactionRequest:
       type: object
@@ -163,29 +355,71 @@ components:
         - accountId
         - type
         - amount
+        - currency
         - category
         - date
       properties:
         accountId:
           type: integer
+          format: int64
+          example: 1
         type:
           type: string
           enum: [INCOME, EXPENSE]
+          example: "EXPENSE"
         amount:
           type: number
           format: float
           minimum: 0.01
           example: 1500.0
+        currency:
+          type: string
+          enum: [ RUB, EUR, USD ]
+          example: "RUB"
         category:
           type: string
           example: "Супермаркеты"
         date:
           type: string
           format: date
-          example: "2026-04-11"
+          example: "2026-05-24"
         description:
           type: string
-          example: "Покупка продуктов на неделю"
+          example: "Покупка продуктов"
+
+    TransactionInfoDto:
+      type: object
+      properties:
+        transactionId:
+          type: integer
+          format: int64
+          example: 1
+        accountId:
+          type: integer
+          format: int64
+          example: 1
+        type:
+          type: string
+          enum: [ INCOME, EXPENSE ]
+          example: "EXPENSE"
+        amount:
+          type: number
+          format: float
+          example: 1500.00
+        category:
+          type: string
+          example: "Супермаркеты"
+        date:
+          type: string
+          format: date
+          example: "2026-05-24"
+        description:
+          type: string
+          example: "Покупка продуктов"
+        accountBalance:
+          type: number
+          format: float
+          example: 98500.00
 
     MonthlyReport:
       type: object
@@ -199,11 +433,27 @@ components:
           format: float
           example: 45000.0
         expenseByCategory:
-          type: object
-          additionalProperties:
-            type: number
-            format: float
-          example:
-            "Супермаркеты": 25000.0
-            "Транспорт": 5000.0
-            "ЖКХ": 15000.0
+          type: array
+          items:
+            type: object
+            properties:
+              category:
+                type: string
+                example: "Супермаркеты"
+              totalExpense:
+                type: number
+                format: float
+                example: 25000.0
+
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        status:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -31,13 +32,14 @@ public class TransactionRequest {
     @NotNull
     private Currency currency;
 
-    @NotNull(message = "Category is required")
-    @NotBlank
+    @Size(max = 50, message = "Category length must be shorter than 50 symbols")
+    @NotBlank(message = "Category is required")
     private String category;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     @NotNull(message = "date is required")
     private LocalDate date;
 
+    @Size(max = 300, message = "Transaction description must be shorter than 300 symbols")
     private String description;
 }

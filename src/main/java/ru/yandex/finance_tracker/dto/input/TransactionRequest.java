@@ -32,12 +32,13 @@ public class TransactionRequest {
     private Currency currency;
 
     @NotNull(message = "Category is required")
+    @Size(max = 50, message = "Category length must be shorter than 50 symbols")
     private String category;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     @NotNull(message = "date is required")
     private LocalDate date;
 
-    @Size(max = 300, message = "Описание транзакции не должно превышать 300 символов")
+    @Size(max = 300, message = "Transaction description must be shorter than 300 symbols")
     private String description;
 }

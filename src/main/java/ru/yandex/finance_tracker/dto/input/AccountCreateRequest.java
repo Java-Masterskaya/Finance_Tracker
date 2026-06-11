@@ -14,7 +14,7 @@ import ru.yandex.finance_tracker.model.Currency;
 @NoArgsConstructor
 public class AccountCreateRequest {
     @NotBlank
-    @Size(max = 100, message = "Длина названия счёта не должна превышать 100 символов")
+    @Size(max = 100, message = "Account name must be shorter than 100 symbols")
     private String name;
     @NotNull
     private Currency currency;

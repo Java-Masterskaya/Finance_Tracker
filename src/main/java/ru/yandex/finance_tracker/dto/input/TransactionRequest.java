@@ -3,6 +3,7 @@ package ru.yandex.finance_tracker.dto.input;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,5 +38,6 @@ public class TransactionRequest {
     @NotNull(message = "date is required")
     private LocalDate date;
 
+    @Size(max = 300, message = "Описание транзакции не должно превышать 300 символов")
     private String description;
 }

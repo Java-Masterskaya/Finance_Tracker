@@ -42,7 +42,8 @@ public class AccountController {
     public List<TransactionInfoDto> getTransaction(
             @PathVariable(name = "accountId") @Positive Long accountId,
             @RequestParam(defaultValue = "0") @PositiveOrZero int page,
-            @RequestParam(defaultValue = "20") @Positive int size) {
-        return accountService.getTransactionsByAccountId(accountId, page, size);
+            @RequestParam(defaultValue = "20") @Positive int size,
+            @AuthenticationPrincipal AuthInfo authInfo) {
+        return accountService.getTransactionsByAccountId(authInfo.getId(), accountId, page, size);
     }
 }

@@ -1,10 +1,7 @@
 package ru.yandex.finance_tracker.dto.input;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -28,6 +25,7 @@ public class TransactionRequest {
     private Float amount;
 
     @NotNull(message = "Category is required")
+    @NotBlank(message = "Category is required")
     private String category;
 
     @JsonFormat(pattern = "yyyy-MM-dd")

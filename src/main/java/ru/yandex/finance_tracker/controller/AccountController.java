@@ -1,6 +1,8 @@
 package ru.yandex.finance_tracker.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -38,10 +40,9 @@ public class AccountController {
     @GetMapping("/{accountId}/transaction")
     @ResponseStatus(HttpStatus.OK)
     public List<TransactionInfoDto> getTransaction(
-            @PathVariable(name = "accountId") Long accountId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @PathVariable(name = "accountId") @Positive Long accountId,
+            @RequestParam(defaultValue = "0") @PositiveOrZero int page,
+            @RequestParam(defaultValue = "20") @Positive int size) {
         return accountService.getTransactionsByAccountId(accountId, page, size);
     }
-
 }

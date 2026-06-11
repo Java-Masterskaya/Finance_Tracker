@@ -1,6 +1,7 @@
 package ru.yandex.finance_tracker.dto.input;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
@@ -31,8 +32,8 @@ public class TransactionRequest {
     @NotNull
     private Currency currency;
 
-    @NotNull(message = "Category is required")
     @Size(max = 50, message = "Category length must be shorter than 50 symbols")
+    @NotBlank(message = "Category is required")
     private String category;
 
     @JsonFormat(pattern = "yyyy-MM-dd")

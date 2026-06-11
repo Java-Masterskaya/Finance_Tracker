@@ -1,0 +1,10 @@
+{
+  "transactionId": 105,
+  "accountId": 3,
+  "type": "EXPENSE",
+  "amount": 1500.0,
+  "category": "Супермаркеты",
+  "date": "2026-05-24",
+  "description": "Покупка продуктов",
+  "timestamp": "2026-05-29T19:59:03.712Z"
+}

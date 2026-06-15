@@ -16,6 +16,9 @@ import ru.yandex.finance_tracker.model.Type;
 import ru.yandex.finance_tracker.storage.AccountRepository;
 import ru.yandex.finance_tracker.storage.TransactionRepository;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -46,14 +49,14 @@ public class TransactionServiceImpl implements TransactionService {
         validateCurrency(request, account);
 
         // считаем баланс
-        float newBalance = calculateNewBalance(account.getBalance(), request.getType(), request.getAmount());
+        BigDecimal newBalance = calculateNewBalance(account.getBalance(), request.getType(), request.getAmount());
 
         // Проверка только для расходов и если баланс становится отрицательным
-        if (request.getType() == Type.EXPENSE && newBalance < 0) {
+        if (request.getType() == Type.EXPENSE && newBalance.compareTo(BigDecimal.ZERO) < 0) {
             log.warn("Недостаточно средств. Баланс={}, Попытка списания={}",
                     account.getBalance(), request.getAmount());
             throw new InsufficientBalanceException(
-                    String.format("%s Баланс: %.2f, Попытка списания: %.2f",
+                    String.format("%s Баланс: %s, Попытка списания: %s",
                             INSUFFICIENT_BALANCE_MESSAGE, account.getBalance(), request.getAmount()));
         }
 
@@ -73,8 +76,9 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /** Считаем баланс, в зависимости от типа операции вычитаем или складываем */
-    private float calculateNewBalance(float currentBalance, Type type, float amount) {
-        return type == Type.INCOME ? currentBalance + amount : currentBalance - amount;
+    private BigDecimal calculateNewBalance(BigDecimal currentBalance, Type type, BigDecimal amount) {
+        BigDecimal result = type == Type.INCOME ? currentBalance.add(amount) : currentBalance.subtract(amount);
+        return result.setScale(2, RoundingMode.HALF_UP);
     }
 
     /**

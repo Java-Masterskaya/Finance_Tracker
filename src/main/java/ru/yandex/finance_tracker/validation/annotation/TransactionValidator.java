@@ -13,28 +13,27 @@ public class TransactionValidator implements ConstraintValidator<ValidTransactio
     @Override
     public boolean isValid(TransactionRequest transactionRequest,
                            ConstraintValidatorContext constraintValidatorContext) {
-        Float amount = transactionRequest.getAmount();
+        BigDecimal amount = transactionRequest.getAmount();
         LocalDate date = transactionRequest.getDate();
 
         return isValidTransactionAmount(amount, constraintValidatorContext)
                 && isValidTransactionDate(date, constraintValidatorContext);
     }
 
-    private boolean isValidTransactionAmount(Float amountRequest,
+    private boolean isValidTransactionAmount(BigDecimal amountRequest,
                                              ConstraintValidatorContext context) {
         if (amountRequest == null) {
             buildValidationError(context,
                     "Amount is missing. Amount must be specified",
                     "amount");
             return false;
-        } else {
-            BigDecimal amount = BigDecimal.valueOf(amountRequest);
-            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-                buildValidationError(context,
-                        "Amount must be positive",
-                        "amount");
-                return false;
-            }
+        }
+
+        if (amountRequest.compareTo(BigDecimal.ZERO) <= 0) {
+            buildValidationError(context,
+                    "Amount must be positive",
+                    "amount");
+            return false;
         }
 
         return true;

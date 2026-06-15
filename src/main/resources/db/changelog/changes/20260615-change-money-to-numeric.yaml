@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260615-001
+      author: iliaalii
+      changes:
+        - sql:
+            sql: |
+              ALTER TABLE accounts 
+                ALTER COLUMN balance TYPE NUMERIC(19,2) USING balance::numeric;
+              
+              ALTER TABLE transactions 
+                ALTER COLUMN amount TYPE NUMERIC(19,2) USING amount::numeric;

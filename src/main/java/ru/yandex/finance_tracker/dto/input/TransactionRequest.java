@@ -12,6 +12,7 @@ import ru.yandex.finance_tracker.model.Currency;
 import ru.yandex.finance_tracker.model.Type;
 import ru.yandex.finance_tracker.validation.validator.ValidTransaction;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
@@ -27,7 +28,7 @@ public class TransactionRequest {
     private Type type;
 
     @NotNull(message = "Amount is required")
-    private Float amount;
+    private BigDecimal amount;
 
     @NotNull
     private Currency currency;

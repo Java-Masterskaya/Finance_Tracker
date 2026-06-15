@@ -3,6 +3,11 @@ info:
   title: Personal Finance Tracker API
   version: 1.0.0
   description: API для приложения учета личных финансов
+servers:
+  - url: http://localhost:8080
+    description: Локальный сервер
+  - url: http://103.76.52.13:8080
+    description: Удаленный тестовый сервер
 paths:
   /api/registration:
     post:

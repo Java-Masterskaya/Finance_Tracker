@@ -15,4 +15,5 @@ public class AccountInfoDto {
     private String name;
     private Currency currency;
     private BigDecimal balance;
+    private boolean overdraftAllowed;
 }

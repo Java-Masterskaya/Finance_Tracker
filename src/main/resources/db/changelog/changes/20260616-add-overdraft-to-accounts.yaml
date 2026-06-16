@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260616-001
+      author: iliaalii
+      changes:
+        - addColumn:
+            tableName: accounts
+            columns:
+              - column:
+                  name: overdraft_allowed
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+                  remarks: "Разрешен ли отрицательный баланс на счете"

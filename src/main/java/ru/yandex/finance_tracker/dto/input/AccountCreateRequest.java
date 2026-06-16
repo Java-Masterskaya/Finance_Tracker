@@ -23,4 +23,6 @@ public class AccountCreateRequest {
     @NotNull
     @PositiveOrZero
     private BigDecimal initialBalance;
+    @NotNull(message = "Укажите, разрешен ли овердрафт")
+    private Boolean overdraftAllowed;
 }

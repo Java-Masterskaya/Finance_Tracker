@@ -3,5 +3,6 @@
   "name": "Зарплатная карта",
   "currency": "RUB",
   "balance": 10000.0,
-  "userId": 2
+  "userId": 2,
+  "overdraftAllowed": false
 }

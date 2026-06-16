@@ -10,3 +10,9 @@ databaseChangeLog:
 
   - include:
       file: db/changelog/changes/20260509-add-users.yaml
+
+  - include:
+      file: db/changelog/changes/20260615-change-money-to-numeric.yaml
+
+  - include:
+      file: db/changelog/changes/20260616-add-overdraft-to-accounts.yaml

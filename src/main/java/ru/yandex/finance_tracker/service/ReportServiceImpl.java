@@ -8,6 +8,8 @@ import ru.yandex.finance_tracker.dto.output.MonthlyReportDto;
 import ru.yandex.finance_tracker.model.Type;
 import ru.yandex.finance_tracker.storage.TransactionRepository;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
@@ -15,7 +17,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ReportServiceImpl  implements ReportService{
+public class ReportServiceImpl implements ReportService {
     private final TransactionRepository transactionRepository;
 
     public MonthlyReportDto getMonthlyReport(Long userId, int year, int month) {
@@ -25,16 +27,17 @@ public class ReportServiceImpl  implements ReportService{
         LocalDate end = start.with(TemporalAdjusters.lastDayOfMonth());
         log.debug("Рассчитаны границы периода: начало={}, конец={}", start, end);
 
-        Float totalIncome = transactionRepository.sumAmountByUserIdAndDateBetween(userId, start, end, Type.INCOME);
-        Float totalExpense = transactionRepository.sumAmountByUserIdAndDateBetween(userId, start, end, Type.EXPENSE);
+        BigDecimal totalIncome = transactionRepository.sumAmountByUserIdAndDateBetween(userId, start, end, Type.INCOME);
+        BigDecimal totalExpense = transactionRepository.sumAmountByUserIdAndDateBetween(userId, start, end, Type.EXPENSE);
         log.debug("Агрегированные данные: доход={}, расход={}", totalIncome, totalExpense);
 
         List<CategoryExpenseDto> byCategory = transactionRepository.getExpenseByCategory(userId, start, end);
         log.info("Найдено категорий расходов: {}", byCategory != null ? byCategory.size() : 0);
+        BigDecimal defaultZero = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
         return new MonthlyReportDto(
-                totalIncome != null ? totalIncome : 0.0f,
-                totalExpense != null ? totalExpense : 0.0f,
+                totalIncome != null ? totalIncome.setScale(2, RoundingMode.HALF_UP) : defaultZero,
+                totalExpense != null ? totalExpense.setScale(2, RoundingMode.HALF_UP) : defaultZero,
                 byCategory
         );
     }

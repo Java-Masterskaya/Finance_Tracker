@@ -8,6 +8,8 @@ import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,6 +29,8 @@ public class Account {
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "currency", columnDefinition = "currency_type", nullable = false)
     private Currency currency;
-    @Column(name = "balance", nullable = false)
-    private Float balance;
+    @Column(name = "balance", nullable = false, precision = 19, scale = 2)
+    private BigDecimal balance;
+    @Column(name = "overdraft_allowed", nullable = false)
+    private boolean overdraftAllowed = false;
 }

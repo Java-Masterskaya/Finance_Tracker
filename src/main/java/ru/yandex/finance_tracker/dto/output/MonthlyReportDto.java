@@ -4,13 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class MonthlyReportDto {
-    private Float totalIncome;
-    private Float totalExpense;
+    private BigDecimal totalIncome;
+    private BigDecimal totalExpense;
     private List<CategoryExpenseDto> expenseByCategory;
 }

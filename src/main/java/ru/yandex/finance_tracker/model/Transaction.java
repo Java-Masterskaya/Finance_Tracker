@@ -10,6 +10,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.dialect.type.PostgreSQLEnumJdbcType;
 import org.hibernate.type.SqlTypes;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @AllArgsConstructor
@@ -30,8 +31,8 @@ public class Transaction {
     @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(name = "type", nullable = false, columnDefinition = "transaction_type")
     private Type type;
-    @Column(name = "amount", nullable = false)
-    private Float amount;
+    @Column(name = "amount", nullable = false, precision = 19, scale = 2)
+    private BigDecimal amount;
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "currency", columnDefinition = "currency_type", nullable = false)

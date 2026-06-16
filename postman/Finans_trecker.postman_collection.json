@@ -139,7 +139,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"name\": \"Зарплатная карта\",\n  \"currency\": \"RUB\",\n  \"initialBalance\": 10000.0\n}",
+          "raw": "{\n  \"name\": \"Зарплатная карта\",\n  \"currency\": \"RUB\",\n  \"initialBalance\": 10000.0,\n  \"overdraftAllowed\": false\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -259,7 +259,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"accountId\": {{last_account_id}},\n  \"type\": \"EXPENSE\",\n  \"amount\": 500.0,\n  \"category\": \"Супермаркет\",\n  \"currency\": \"RUB\",\n  \"date\": \"2026-05-24\",\n  \"description\": \"Покупка продуктов\"\n}",
+          "raw": "{\n  \"accountId\": {{last_account_id}},\n  \"type\": \"EXPENSE\",\n  \"amount\": 5000.0,\n  \"category\": \"Супермаркет\",\n  \"currency\": \"RUB\",\n  \"date\": \"2026-05-24\",\n  \"description\": \"Покупка продуктов\"\n}",
           "options": {
             "raw": {
               "language": "json"

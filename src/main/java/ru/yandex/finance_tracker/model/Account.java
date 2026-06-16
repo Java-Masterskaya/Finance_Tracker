@@ -31,4 +31,6 @@ public class Account {
     private Currency currency;
     @Column(name = "balance", nullable = false, precision = 19, scale = 2)
     private BigDecimal balance;
+    @Column(name = "overdraft_allowed", nullable = false)
+    private boolean overdraftAllowed = false;
 }

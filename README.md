@@ -85,13 +85,14 @@ docker compose down -v
 
 На данный момент база данных содержит в себе 2 таблицы `accounts` и `transactions`
 
-| Accounts | Тип     |
-|----------|---------|
-| id       | INT     |
-| name     | VARCHAR |
-| currency | VARCHAR |
-| balance  | FLOAT   |
-| user_id  | INT     |
+| Accounts          | Тип     |
+|-------------------|---------|
+| id                | INT     |
+| name              | VARCHAR |
+| currency          | VARCHAR |
+| balance           | FLOAT   |
+| user_id           | INT     |
+| overdraft_allowed | boolean |
 
 | Transactions   | Тип              |
 |----------------|------------------|
@@ -229,7 +230,9 @@ public ResponseEntity<Account> getAccount(@PathVariable Long accountId) {
     "id": 1,
     "name": "Зарплатная карта",
     "currency": "RUB",
-    "balance": 150500.5
+    "balance": 150500.5,
+     "userId": 2,
+     "overdraftAllowed": false
   }
 ]
 ```
@@ -243,7 +246,8 @@ public ResponseEntity<Account> getAccount(@PathVariable Long accountId) {
 {
   "name": "string",
   "currency": "RUB",
-  "initialBalance": 0
+  "initialBalance": 0,
+   "overdraftAllowed": false
 }
 ```
 

@@ -1,5 +1,6 @@
 {
   "name": "Зарплатная карта",
   "currency": "RUB",
-  "initialBalance": 10000.0
+  "initialBalance": 10000.0,
+  "overdraftAllowed": false
 }

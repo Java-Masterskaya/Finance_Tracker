@@ -171,16 +171,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/TransactionInfoDto'
         '400':
-          description: Ошибка валидации или отсутствует Idempotency Key
+          description: Ошибка валидации полей, отсутствие ключа или нехватка средств
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiError'
-              example:
-                error: "Idempotency key already in use"
-                message: "Idempotency key is missing"
-                status: 400
-                timestamp: "2026-05-29 12:00:00"
+              examples:
+                MissingIdempotencyKey:
+                  summary: Отсутствует ключ идемпотентности / ошибка валидации
+                  value:
+                    error: "Validation Failed"
+                    message: "Idempotency key is missing"
+                    status: 400
+                    timestamp: "2026-05-29 12:00:00"
+                InsufficientFunds:
+                  summary: Недостаточно средств на счете (овердрафт запрещен)
+                  value:
+                    error: "Insufficient Funds"
+                    message: "Запрещено списание без овердрафта. Баланс=0.00, Попытка списания=5000.0"
+                    status: 400
+                    timestamp: "2026-05-29 12:00:00"
         '409':
           description: Попытка отправить запрос с одним и тем же ключом идемпотентности
           content:
@@ -322,6 +332,7 @@ components:
         - name
         - currency
         - initialBalance
+        - overdraftAllowed
       properties:
         name:
           type: string
@@ -334,6 +345,9 @@ components:
           type: number
           format: float
           example: 5000.0
+        overdraftAllowed:
+          type: boolean
+          example: false
 
     AccountInfoDto:
       type: object
@@ -353,6 +367,9 @@ components:
           type: number
           format: float
           example: 150500.50
+        overdraftAllowed:
+          type: boolean
+          example: false
 
     TransactionRequest:
       type: object

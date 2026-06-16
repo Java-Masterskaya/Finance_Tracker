@@ -11,8 +11,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.finance_tracker.dto.input.TransactionRequest;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
-import ru.yandex.finance_tracker.exception.IdempotencyKeyException;
-import ru.yandex.finance_tracker.exception.ServerErrorException;
+import ru.yandex.finance_tracker.exception.*;
 import ru.yandex.finance_tracker.idempotency.IdempotencyService;
 import ru.yandex.finance_tracker.security.dto.AuthInfo;
 import ru.yandex.finance_tracker.service.TransactionService;
@@ -54,7 +53,13 @@ public class TransactionController {
             idempotencyService.cacheResponse(iKey, response);
             log.info("POST /v1/transactions finished: transactionId={}", response.transactionId());
             return response;
+        } catch (InsufficientBalanceException |
+                 NotFoundException |
+                 CurrencyMismatchException e) {
+            idempotencyService.unlock(iKey);
+            throw e;
         } catch (Exception e) {
+            log.error("Unexpected error during transaction processing", e);
             idempotencyService.unlock(iKey);
             throw new ServerErrorException("Fail during transaction operation");
         }

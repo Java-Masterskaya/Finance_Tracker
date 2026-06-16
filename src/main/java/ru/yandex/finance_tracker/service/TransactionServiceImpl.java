@@ -38,12 +38,9 @@ public class TransactionServiceImpl implements TransactionService {
         log.info("Создание транзакции для пользователя ID={}, счёт ID={}, тип={}",
                 userId, request.getAccountId(), request.getType());
 
-        // ищем счет, по id счета и владельца (счет должен принадлежать конкретному владельцу)
-        Account account = accountRepository.findByIdAndUserId(request.getAccountId(), userId)
-                .orElseThrow(() -> {
-                    log.warn("Счёт {} не найден или не принадлежит пользователю {}", request.getAccountId(), userId);
-                    return new NotFoundException(ACCOUNT_NOT_FOUND_MESSAGE + request.getAccountId());
-                });
+        // ищем счет, по id счета и владельца (счет должен принадлежать конкретному владельцу) с блокировкой и очередью
+        Account account = accountRepository.findByIdAndUserIdWithLock(request.getAccountId(), userId)
+                .orElseThrow(() -> new NotFoundException(ACCOUNT_NOT_FOUND_MESSAGE + request.getAccountId()));
 
         // проверка валюты
         validateCurrency(request, account);
@@ -51,9 +48,12 @@ public class TransactionServiceImpl implements TransactionService {
         // считаем баланс
         BigDecimal newBalance = calculateNewBalance(account.getBalance(), request.getType(), request.getAmount());
 
-        // Проверка только для расходов и если баланс становится отрицательным
-        if (request.getType() == Type.EXPENSE && newBalance.compareTo(BigDecimal.ZERO) < 0) {
-            log.warn("Недостаточно средств. Баланс={}, Попытка списания={}",
+        // Проверка ухода в минус если overdraft запрещен
+        if (request.getType() == Type.EXPENSE
+                && !account.isOverdraftAllowed()
+                && newBalance.compareTo(BigDecimal.ZERO) < 0) {
+
+            log.warn("Запрещено списание без овердрафта. Баланс={}, Попытка списания={}",
                     account.getBalance(), request.getAmount());
             throw new InsufficientBalanceException(
                     String.format("%s Баланс: %s, Попытка списания: %s",

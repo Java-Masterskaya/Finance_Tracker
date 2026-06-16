@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.yandex.finance_tracker.dto.input.TransactionRequest;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
+import ru.yandex.finance_tracker.exception.CurrencyMismatchException;
 import ru.yandex.finance_tracker.exception.InsufficientBalanceException;
 import ru.yandex.finance_tracker.mapper.TransactionMapper;
 import ru.yandex.finance_tracker.model.Account;
@@ -55,6 +56,13 @@ class TransactionServiceTests {
         assertThrows(InsufficientBalanceException.class,
                 () -> service.createTransaction(1L, request));
 
+    }
+
+    @ParameterizedTest
+    @MethodSource("ru.yandex.finance_tracker.ArgumentsForTests#currencyMismatchExceptionArguments")
+    void shouldThrowCurrencyMismatchException(TransactionRequest request, Account account) {
+        when(accountRepository.findByIdAndUserId(anyLong(), anyLong())).thenReturn(Optional.of(account));
+        assertThrows(CurrencyMismatchException.class, () -> service.createTransaction(1L, request));
     }
 
     @ParameterizedTest

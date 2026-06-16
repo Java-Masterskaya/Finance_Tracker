@@ -1,6 +1,7 @@
 package ru.yandex.finance_tracker;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -8,23 +9,31 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import ru.yandex.finance_tracker.dto.input.AccountCreateRequest;
+import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
+import ru.yandex.finance_tracker.exception.AccessDeniedException;
 import ru.yandex.finance_tracker.mapper.AccountMapper;
-import ru.yandex.finance_tracker.model.Account;
-import ru.yandex.finance_tracker.model.User;
+import ru.yandex.finance_tracker.mapper.TransactionMapper;
+import ru.yandex.finance_tracker.model.*;
 import ru.yandex.finance_tracker.service.AccountService;
 import ru.yandex.finance_tracker.service.AccountServiceImpl;
+import ru.yandex.finance_tracker.service.TransactionService;
+import ru.yandex.finance_tracker.service.TransactionServiceImpl;
 import ru.yandex.finance_tracker.storage.AccountRepository;
+import ru.yandex.finance_tracker.storage.TransactionRepository;
 import ru.yandex.finance_tracker.storage.UserRepository;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class AccountServiceTests {
@@ -33,6 +42,9 @@ public class AccountServiceTests {
     private AccountRepository accountRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private TransactionRepository transactionRepository;
+    private TransactionMapper transactionMapper = Mappers.getMapper(TransactionMapper.class);
     private AccountService accountService;
 
     @BeforeEach
@@ -40,7 +52,9 @@ public class AccountServiceTests {
         accountService = new AccountServiceImpl(
                 accountRepository,
                 userRepository,
-                mapper
+                mapper,
+                transactionRepository,
+                transactionMapper
         );
     }
 
@@ -76,4 +90,92 @@ public class AccountServiceTests {
         assertNotNull(result);
     }
 
+    @Test
+    void shouldReturnTransactionsForAccount() {
+
+        Long userId = 1L;
+        Long accountId = 10L;
+
+        Account account = new Account();
+        account.setId(accountId);
+        account.setBalance(1000F);
+
+        User user = new User();
+        user.setId(userId);
+
+        Transaction tx1 = new Transaction(
+                100L,
+                account,
+                Type.INCOME,
+                100F,
+                Currency.RUB,
+                "test",
+                LocalDate.now(),
+                "test123",
+                user
+        );
+
+
+        TransactionInfoDto dto1 = new TransactionInfoDto(
+                100L,
+                accountId,
+                Type.INCOME,
+                100F,
+                "test",
+                LocalDate.now(),
+                "test123",
+                1000F
+        );
+
+        when(accountRepository.existsByIdAndUserId(accountId, userId))
+                .thenReturn(true);
+
+        when(transactionRepository.findByAccountId(
+                eq(accountId),
+                any(PageRequest.class)
+        )).thenReturn(new PageImpl<>(List.of(tx1)));
+
+
+        List<TransactionInfoDto> result =
+                accountService.getTransactionsByAccountId(
+                        userId,
+                        accountId,
+                        0,
+                        20
+                );
+
+        assertEquals(1, result.size());
+        assertEquals(dto1, result.get(0));
+
+        verify(accountRepository)
+                .existsByIdAndUserId(accountId, userId);
+
+        verify(transactionRepository)
+                .findByAccountId(eq(accountId), any(PageRequest.class));
+    }
+
+    @Test
+    void shouldThrowAccessDeniedExceptionWhenAccountNotBelongToUser() {
+
+        Long userId = 1L;
+        Long accountId = 10L;
+
+        when(accountRepository.existsByIdAndUserId(accountId, userId))
+                .thenReturn(false);
+
+        assertThrows(
+                AccessDeniedException.class,
+                () -> accountService.getTransactionsByAccountId(
+                        userId,
+                        accountId,
+                        0,
+                        20
+                )
+        );
+
+        verify(accountRepository)
+                .existsByIdAndUserId(accountId, userId);
+
+        verifyNoInteractions(transactionRepository);
+    }
 }

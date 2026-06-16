@@ -48,7 +48,6 @@ jobs:
   integration-tests:
     runs-on: ubuntu-latest
     name: Integration Tests
-    continue-on-error: true
     permissions:
       contents: read
       checks: write

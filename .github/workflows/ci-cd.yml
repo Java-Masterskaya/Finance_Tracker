@@ -1,4 +1,4 @@
-name: Build and Tests
+name: Build, Test and Deploy
 
 on:
   push:
@@ -49,7 +49,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Integration Tests
     continue-on-error: true
-
     permissions:
       contents: read
       checks: write
@@ -88,6 +87,7 @@ jobs:
           path: '**/build/test-results/**/TEST-*.xml'
           reporter: java-junit
 
+  # Джоба 3: Сборка готового JAR-файла (только если тесты прошли)
   build:
     needs: [unit-tests, integration-tests]
     runs-on: ubuntu-latest
@@ -121,3 +121,39 @@ jobs:
           name: finance-tracker-jar
           path: build/libs/finance-tracker-*.jar
           retention-days: 5
+
+  # Джоба 4: Автоматический деплой на сервер
+  deploy:
+    needs: build
+    # Деплой сработает ТОЛЬКО при push в ветку main.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    name: Deploy to Server
+
+    steps:
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: finance-tracker-jar
+          path: build/libs
+
+      - name: Copy JAR to Server via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "build/libs/finance-tracker-*.jar"
+          target: "/app/Finance_Tracker"
+
+      - name: Execute remote ssh commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /app/Finance_Tracker
+            git fetch origin main
+            git reset --hard origin/main
+            make run

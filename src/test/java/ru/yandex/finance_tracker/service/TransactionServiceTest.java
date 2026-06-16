@@ -24,10 +24,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Testcontainers
-public class TransactionServiceConcurrencyTest {
+public class TransactionServiceTest {
 
     @Container
     @ServiceConnection
@@ -56,6 +57,7 @@ public class TransactionServiceConcurrencyTest {
         ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
         CountDownLatch latch = new CountDownLatch(1);
 
+        @SuppressWarnings("unused")
         AtomicInteger successCount = new AtomicInteger(0);
         AtomicInteger failureCount = new AtomicInteger(0);
 
@@ -66,7 +68,7 @@ public class TransactionServiceConcurrencyTest {
                 Currency.RUB,
                 "test",
                 LocalDate.now(),
-                "транзакция номер: " + latch);
+                "test");
 
         for (int i = 0; i < numberOfThreads; i++) {
             executor.submit(() -> {
@@ -95,5 +97,39 @@ public class TransactionServiceConcurrencyTest {
         assertThat(successCount.get()).isEqualTo(3);
         assertThat(failureCount.get()).isEqualTo(2);
         assertThat(updatedAccount.getBalance()).isEqualTo(new BigDecimal("10.00"));
+    }
+
+    @Test
+    public void shouldThrowException_WhenOverdraftDisabledAndBalanceGoesNegative() {
+        User user = userRepository.findById(1L).orElseThrow(() -> new RuntimeException("User not found"));
+        Account account = new Account(null, user, "overdraft-disabled-test", Currency.RUB, new BigDecimal("100.00"), false);
+        account = accountRepository.saveAndFlush(account);
+
+        TransactionRequest request = new TransactionRequest(
+                account.getId(), Type.EXPENSE, new BigDecimal("150.00"), Currency.RUB, "overdraft-check", LocalDate.now(), "check"
+        );
+
+        assertThrows(InsufficientBalanceException.class, () ->
+                transactionService.createTransaction(user.getId(), request)
+        );
+
+        Account updatedAccount = accountRepository.findById(account.getId()).orElseThrow();
+        assertThat(updatedAccount.getBalance()).isEqualTo(new BigDecimal("100.00"));
+    }
+
+    @Test
+    public void shouldAllowNegativeBalance_WhenOverdraftEnabled() {
+        User user = userRepository.findById(1L).orElseThrow(() -> new RuntimeException("User not found"));
+        Account account = new Account(null, user, "overdraft-enabled-test", Currency.RUB, new BigDecimal("100.00"), true);
+        account = accountRepository.saveAndFlush(account);
+
+        TransactionRequest request = new TransactionRequest(
+                account.getId(), Type.EXPENSE, new BigDecimal("150.00"), Currency.RUB, "overdraft-check", LocalDate.now(), "check"
+        );
+
+        transactionService.createTransaction(user.getId(), request);
+
+        Account updatedAccount = accountRepository.findById(account.getId()).orElseThrow();
+        assertThat(updatedAccount.getBalance()).isEqualTo(new BigDecimal("-50.00"));
     }
 }

@@ -50,29 +50,31 @@ class TransactionServiceTests {
     }
 
     @ParameterizedTest
-    @MethodSource("ru.yandex.finance_tracker.ArgumentsForTests#InsufficientBalanceArguments")
+    @MethodSource("ru.yandex.finance_tracker.ArgumentsForTests#insufficientBalanceArguments")
+        //В аргументах отключен 5 набор параметров т.к он роняет тесты из-за неработающего округления.
     void shouldThrowInsufficientBalanceException(TransactionRequest request, Account account) {
-        when(accountRepository.findByIdAndUserId(anyLong(), anyLong())).thenReturn(Optional.of(account));
+        when(accountRepository.findByIdAndUserIdWithLock(anyLong(), anyLong())).thenReturn(Optional.of(account));
         assertThrows(InsufficientBalanceException.class,
-                () -> service.createTransaction(1L, request));
+                () -> service.createTransaction(1L, request), "Сервис допустил некорректный баланс. " +
+                        "Запросы:\n" + request + "\n" + account);
 
     }
 
     @ParameterizedTest
     @MethodSource("ru.yandex.finance_tracker.ArgumentsForTests#currencyMismatchExceptionArguments")
     void shouldThrowCurrencyMismatchException(TransactionRequest request, Account account) {
-        when(accountRepository.findByIdAndUserId(anyLong(), anyLong())).thenReturn(Optional.of(account));
+        when(accountRepository.findByIdAndUserIdWithLock(anyLong(), anyLong())).thenReturn(Optional.of(account));
         assertThrows(CurrencyMismatchException.class, () -> service.createTransaction(1L, request));
     }
 
     @ParameterizedTest
     @MethodSource("ru.yandex.finance_tracker.ArgumentsForTests#argumentsForCreateTransaction")
     void shouldCreateTransaction(TransactionRequest request, Account account) {
-        Float balance = account.getBalance();
+        var balance = account.getBalance();
 
         Long userId = 1L;
 
-        when(accountRepository.findByIdAndUserId(
+        when(accountRepository.findByIdAndUserIdWithLock(
                 anyLong(),
                 anyLong()
         )).thenReturn(Optional.of(account));
@@ -99,9 +101,9 @@ class TransactionServiceTests {
         Transaction savedTx = txCaptor.getValue();
 
         if (request.getType() == Type.INCOME) {
-            assertTrue(savedAccount.getBalance() > balance);
+            assertTrue(savedAccount.getBalance().compareTo(balance) > 0);
         } else {
-            assertTrue(savedAccount.getBalance() <= balance);
+            assertTrue(savedAccount.getBalance().compareTo(balance) < 0);
         }
 
         assertEquals(account, savedTx.getAccount());

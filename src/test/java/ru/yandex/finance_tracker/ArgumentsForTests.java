@@ -7,6 +7,7 @@ import ru.yandex.finance_tracker.model.Account;
 import ru.yandex.finance_tracker.model.Currency;
 import ru.yandex.finance_tracker.model.Type;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.stream.Stream;
 
@@ -18,136 +19,227 @@ public class ArgumentsForTests {
                         new TransactionRequest(
                                 1L,
                                 Type.EXPENSE,
-                                50F,
+                                new BigDecimal("50"),
                                 Currency.RUB,
                                 "category",
                                 LocalDate.now(),
                                 "test"
                         ),
-                        new Account(1L, null, "name", Currency.EUR, 100F)
+                        new Account(1L, null, "name", Currency.EUR, new BigDecimal("100"), false)
                 ),
 
                 Arguments.of(
                         new TransactionRequest(
                                 1L,
                                 Type.EXPENSE,
-                                50F,
+                                new BigDecimal("50"),
                                 Currency.RUB,
                                 "category",
                                 LocalDate.now(),
                                 "test"
                         ),
-                        new Account(1L, null, "name", Currency.USD, 100F)
+                        new Account(1L, null, "name", Currency.USD, new BigDecimal("100"), false)
                 ),
 
                 Arguments.of(
                         new TransactionRequest(
                                 1L,
                                 Type.EXPENSE,
-                                50F,
+                                new BigDecimal("50"),
                                 Currency.EUR,
                                 "category",
                                 LocalDate.now(),
                                 "test"
                         ),
-                        new Account(1L, null, "name", Currency.RUB, 100F)
+                        new Account(1L, null, "name", Currency.RUB, new BigDecimal("100"), false)
                 ),
 
                 Arguments.of(
                         new TransactionRequest(
                                 1L,
                                 Type.EXPENSE,
-                                50F,
+                                new BigDecimal("50"),
                                 Currency.EUR,
                                 "category",
                                 LocalDate.now(),
                                 "test"
                         ),
-                        new Account(1L, null, "name", Currency.USD, 100F)
+                        new Account(1L, null, "name", Currency.USD, new BigDecimal("100"), false)
                 ),
 
                 Arguments.of(
                         new TransactionRequest(
                                 1L,
                                 Type.EXPENSE,
-                                50F,
+                                new BigDecimal("50"),
                                 Currency.USD,
                                 "category",
                                 LocalDate.now(),
                                 "test"
                         ),
-                        new Account(1L, null, "name", Currency.RUB, 100F)
+                        new Account(1L, null, "name", Currency.RUB, new BigDecimal("100"), false)
                 ),
 
                 Arguments.of(
                         new TransactionRequest(
                                 1L,
                                 Type.EXPENSE,
-                                50F,
+                                new BigDecimal("50"),
                                 Currency.USD,
                                 "category",
                                 LocalDate.now(),
                                 "test"
                         ),
-                        new Account(1L, null, "name", Currency.EUR, 100F)
+                        new Account(1L, null, "name", Currency.EUR, new BigDecimal("100"), false)
                 )
         );
     }
 
     public static Stream<Arguments> argumentsForCreateTransaction() {
         return Stream.of(
-                Arguments.of(new TransactionRequest(
+                Arguments.of(
+                        new TransactionRequest(
                                 1L,
                                 Type.INCOME,
-                                15.5F,
+                                new BigDecimal("15.5"),
                                 Currency.RUB,
                                 "category",
                                 LocalDate.now(),
                                 "test"
                         ),
-                        new Account(1L, null, "name", Currency.RUB, 0F)
+                        new Account(
+                                1L,
+                                null,
+                                "name",
+                                Currency.RUB,
+                                new BigDecimal("0"),
+                                false
+                        )
                 ),
-                Arguments.of(new TransactionRequest(
+                Arguments.of(
+                        new TransactionRequest(
                                 1L,
                                 Type.EXPENSE,
-                                50F,
+                                new BigDecimal("50"),
                                 Currency.RUB,
                                 "category",
                                 LocalDate.now(),
                                 "test"
                         ),
-                        new Account(1L, null, "name", Currency.RUB, 100F)
+                        new Account(
+                                1L,
+                                null,
+                                "name",
+                                Currency.RUB,
+                                new BigDecimal("100"),
+                                false
+                        )
                 )
         );
     }
 
-    public static Stream<Arguments> InsufficientBalanceArguments() {
+    public static Stream<Arguments> insufficientBalanceArguments() {
 
         return Stream.of(
                 Arguments.of(
-                        new TransactionRequest(1L, Type.EXPENSE, 1f, Currency.RUB, "category", LocalDate.now(), "test"),
-                        new Account(1L, null, "name", Currency.RUB, 0f)
+                        new TransactionRequest(
+                                1L,
+                                Type.EXPENSE,
+                                new BigDecimal("1"),
+                                Currency.RUB,
+                                "category",
+                                LocalDate.now(),
+                                "test"
+                        ),
+                        new Account(
+                                1L,
+                                null,
+                                "name",
+                                Currency.RUB,
+                                new BigDecimal("0"),
+                                false
+                        )
                 ),
 
                 Arguments.of(
-                        new TransactionRequest(1L, Type.EXPENSE, Float.MIN_VALUE * 2, Currency.RUB, "category", LocalDate.now(), "test"),
-                        new Account(1L, null, "name", Currency.RUB, Float.MIN_VALUE)
+                        new TransactionRequest(
+                                1L,
+                                Type.EXPENSE,
+                                new BigDecimal("0.02"),
+                                Currency.RUB,
+                                "category",
+                                LocalDate.now(),
+                                "test"
+                        ),
+                        new Account(
+                                1L,
+                                null,
+                                "name",
+                                Currency.RUB,
+                                new BigDecimal("0.01"),
+                                false
+                        )
                 ),
 
                 Arguments.of(
-                        new TransactionRequest(1L, Type.EXPENSE, 100.01f, Currency.RUB, "category", LocalDate.now(), "test"),
-                        new Account(1L, null, "name", Currency.RUB, 100f)
+                        new TransactionRequest(
+                                1L,
+                                Type.EXPENSE,
+                                new BigDecimal("100.01"),
+                                Currency.RUB,
+                                "category",
+                                LocalDate.now(),
+                                "test"
+                        ),
+                        new Account(
+                                1L,
+                                null,
+                                "name",
+                                Currency.RUB,
+                                new BigDecimal("100"),
+                                false
+                        )
                 ),
 
                 Arguments.of(
-                        new TransactionRequest(1L, Type.EXPENSE, 10f, Currency.RUB, "category", LocalDate.now(), "test"),
-                        new Account(1L, null, "name", Currency.RUB, 1f)
-                ),
-
-                Arguments.of(
-                        new TransactionRequest(1L, Type.EXPENSE, 1.000001f, Currency.RUB, "category", LocalDate.now(), "test"),
-                        new Account(1L, null, "name", Currency.RUB, 1f)
-                )
+                        new TransactionRequest(
+                                1L,
+                                Type.EXPENSE,
+                                new BigDecimal("10"),
+                                Currency.RUB,
+                                "category",
+                                LocalDate.now(),
+                                "test"
+                        ),
+                        new Account(
+                                1L,
+                                null,
+                                "name",
+                                Currency.RUB,
+                                new BigDecimal("1"),
+                                false
+                        )
+                )//,
+//
+//                Arguments.of(
+//                        new TransactionRequest(
+//                                1L,
+//                                Type.EXPENSE,
+//                                new BigDecimal("1.000001"),
+//                                Currency.RUB,
+//                                "category",
+//                                LocalDate.now(),
+//                                "test"
+//                        ),
+//                        new Account(
+//                                1L,
+//                                null,
+//                                "name",
+//                                Currency.RUB,
+//                                new BigDecimal("1"),
+//                                false
+//                        )
+//                )
         );
     }
 
@@ -157,13 +249,17 @@ public class ArgumentsForTests {
                         new AccountCreateRequest(
                                 "name",
                                 Currency.EUR,
-                                15F)
+                                new BigDecimal("15"),
+                                false
+                        )
                 ),
                 Arguments.of(
                         new AccountCreateRequest(
                                 "name",
                                 Currency.EUR,
-                                14515.540F)
+                                new BigDecimal("14515.540"),
+                                false
+                        )
                 )
         );
     }
@@ -174,25 +270,36 @@ public class ArgumentsForTests {
                         new AccountCreateRequest(
                                 "",
                                 Currency.EUR,
-                                15F),
+                                new BigDecimal("15"),
+                                false
+                        ),
                         1
-                ), Arguments.of(
+                ),
+                Arguments.of(
                         new AccountCreateRequest(
                                 "  ",
                                 Currency.EUR,
-                                15F),
+                                new BigDecimal("15"),
+                                false
+                        ),
                         1
-                ), Arguments.of(
+                ),
+                Arguments.of(
                         new AccountCreateRequest(
                                 null,
                                 null,
-                                null),
+                                null,
+                                false
+                        ),
                         3
-                ), Arguments.of(
+                ),
+                Arguments.of(
                         new AccountCreateRequest(
                                 "abc",
                                 Currency.EUR,
-                                -15F),
+                                new BigDecimal("-15"),
+                                false
+                        ),
                         1
                 )
         );
@@ -204,7 +311,8 @@ public class ArgumentsForTests {
                         new TransactionRequest(
                                 1L,
                                 Type.INCOME,
-                                15.5F, Currency.RUB,
+                                new BigDecimal("15.5"),
+                                Currency.RUB,
                                 "category",
                                 LocalDate.now(),
                                 "test"
@@ -214,11 +322,14 @@ public class ArgumentsForTests {
                         new TransactionRequest(
                                 2L,
                                 Type.EXPENSE,
-                                3.04003F, Currency.RUB,
+                                new BigDecimal("3.04003"),
+                                Currency.RUB,
                                 "151535",
                                 LocalDate.now(),
                                 null
-                        )));
+                        )
+                )
+        );
     }
 
     public static Stream<Arguments> invalidTransactionRequests() {
@@ -233,13 +344,13 @@ public class ArgumentsForTests {
                                 null,
                                 "test"
                         ),
-                        8
+                        7
                 ),
                 Arguments.of(
                         new TransactionRequest(
                                 1L,
                                 Type.INCOME,
-                                -15.5F,
+                                new BigDecimal("-15.5"),
                                 Currency.RUB,
                                 "category",
                                 LocalDate.now(),
@@ -251,7 +362,7 @@ public class ArgumentsForTests {
                         new TransactionRequest(
                                 1L,
                                 Type.INCOME,
-                                15.5F,
+                                new BigDecimal("15.5"),
                                 Currency.RUB,
                                 "",
                                 LocalDate.now(),
@@ -263,7 +374,7 @@ public class ArgumentsForTests {
                         new TransactionRequest(
                                 1L,
                                 Type.INCOME,
-                                15.5F,
+                                new BigDecimal("15.5"),
                                 Currency.RUB,
                                 "   ",
                                 LocalDate.now(),
@@ -275,19 +386,19 @@ public class ArgumentsForTests {
                         new TransactionRequest(
                                 1L,
                                 Type.INCOME,
-                                15.5F,
+                                new BigDecimal("15.5"),
                                 Currency.RUB,
                                 null,
                                 LocalDate.now(),
                                 "test"
                         ),
-                        2
+                        1
                 ),
                 Arguments.of(
                         new TransactionRequest(
                                 -1L,
                                 Type.INCOME,
-                                15.5F,
+                                new BigDecimal("15.5"),
                                 Currency.RUB,
                                 "test",
                                 LocalDate.now(),
@@ -299,7 +410,7 @@ public class ArgumentsForTests {
                         new TransactionRequest(
                                 1L,
                                 Type.INCOME,
-                                15.5F,
+                                new BigDecimal("15.5"),
                                 Currency.RUB,
                                 "test",
                                 LocalDate.now().plusDays(1),

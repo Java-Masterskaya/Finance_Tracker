@@ -26,6 +26,7 @@ import ru.yandex.finance_tracker.storage.AccountRepository;
 import ru.yandex.finance_tracker.storage.TransactionRepository;
 import ru.yandex.finance_tracker.storage.UserRepository;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -98,7 +99,7 @@ public class AccountServiceTests {
 
         Account account = new Account();
         account.setId(accountId);
-        account.setBalance(1000F);
+        account.setBalance(BigDecimal.valueOf(1000));
 
         User user = new User();
         user.setId(userId);
@@ -107,7 +108,7 @@ public class AccountServiceTests {
                 100L,
                 account,
                 Type.INCOME,
-                100F,
+                BigDecimal.valueOf(100),
                 Currency.RUB,
                 "test",
                 LocalDate.now(),
@@ -120,11 +121,11 @@ public class AccountServiceTests {
                 100L,
                 accountId,
                 Type.INCOME,
-                100F,
+                BigDecimal.valueOf(100),
                 "test",
                 LocalDate.now(),
                 "test123",
-                1000F
+                BigDecimal.valueOf(1000)
         );
 
         when(accountRepository.existsByIdAndUserId(accountId, userId))
@@ -145,7 +146,7 @@ public class AccountServiceTests {
                 );
 
         assertEquals(1, result.size());
-        assertEquals(dto1, result.get(0));
+        assertEquals(dto1, result.getFirst());
 
         verify(accountRepository)
                 .existsByIdAndUserId(accountId, userId);

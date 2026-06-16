@@ -19,17 +19,26 @@ repositories {
 }
 
 sourceSets {
-    integrationTest {
-        compileClasspath += sourceSets.main.output
-        runtimeClasspath += sourceSets.main.output
-    }
+	integrationTest {
+
+		compileClasspath += sourceSets.main.output + sourceSets.test.output
+		runtimeClasspath += sourceSets.main.output + sourceSets.test.output
+		java {
+			srcDir 'src/integrationTest/java'
+		}
+		resources {
+			srcDir 'src/integrationTest/resources'
+		}
+	}
 }
 
 configurations {
-    integrationTestImplementation.extendsFrom testImplementation
-    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+	// Интеграционные тесты наследуют абсолютно все зависимости приложения и unit-тестов
+	integrationTestCompileClasspath.extendsFrom testCompileClasspath
+	integrationTestRuntimeClasspath.extendsFrom testRuntimeClasspath
+	integrationTestImplementation.extendsFrom testImplementation
+	integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
 }
-
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
@@ -65,6 +74,8 @@ dependencies {
     testImplementation 'org.testcontainers:postgresql:1.19.8'
     testImplementation 'org.testcontainers:junit-jupiter:1.19.8'
 	testImplementation 'org.springframework.security:spring-security-test'
+
+	integrationTestAnnotationProcessor 'org.projectlombok:lombok', 'org.mapstruct:mapstruct-processor:1.6.3'
 }
 
 tasks.named('test') {

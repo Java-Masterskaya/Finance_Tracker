@@ -219,27 +219,27 @@ public class ArgumentsForTests {
                                 new BigDecimal("1"),
                                 false
                         )
-                )//,
-//
-//                Arguments.of(
-//                        new TransactionRequest(
-//                                1L,
-//                                Type.EXPENSE,
-//                                new BigDecimal("1.000001"),
-//                                Currency.RUB,
-//                                "category",
-//                                LocalDate.now(),
-//                                "test"
-//                        ),
-//                        new Account(
-//                                1L,
-//                                null,
-//                                "name",
-//                                Currency.RUB,
-//                                new BigDecimal("1"),
-//                                false
-//                        )
-//                )
+                ),
+
+                Arguments.of(
+                        new TransactionRequest(
+                                1L,
+                                Type.EXPENSE,
+                                new BigDecimal("1.000001"),
+                                Currency.RUB,
+                                "category",
+                                LocalDate.now(),
+                                "test"
+                        ),
+                        new Account(
+                                1L,
+                                null,
+                                "name",
+                                Currency.RUB,
+                                new BigDecimal("1"),
+                                false
+                        )
+                )
         );
     }
 

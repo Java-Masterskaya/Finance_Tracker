@@ -2,7 +2,7 @@ package ru.yandex.finance_tracker.service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.yandex.finance_tracker.BaseIntegrationTest;
+import ru.yandex.finance_tracker.baseclasses.PostgreSQLContainerForTests;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
 import ru.yandex.finance_tracker.exception.AccessDeniedException;
 import ru.yandex.finance_tracker.model.*;
@@ -17,7 +17,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class AccountServiceTests extends BaseIntegrationTest {
+public class AccountServiceTests extends PostgreSQLContainerForTests {
     @Autowired
     private AccountRepository accountRepository;
 

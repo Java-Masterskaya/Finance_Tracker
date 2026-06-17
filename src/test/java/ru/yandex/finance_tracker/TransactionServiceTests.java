@@ -51,7 +51,6 @@ class TransactionServiceTests {
 
     @ParameterizedTest
     @MethodSource("ru.yandex.finance_tracker.ArgumentsForTests#insufficientBalanceArguments")
-        //В аргументах отключен 5 набор параметров т.к он роняет тесты из-за неработающего округления.
     void shouldThrowInsufficientBalanceException(TransactionRequest request, Account account) {
         when(accountRepository.findByIdAndUserIdWithLock(anyLong(), anyLong())).thenReturn(Optional.of(account));
         assertThrows(InsufficientBalanceException.class,

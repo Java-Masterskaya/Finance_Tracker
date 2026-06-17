@@ -6,10 +6,9 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.yandex.finance_tracker.BaseIntegrationTest;
+import ru.yandex.finance_tracker.baseclasses.ContainersForTests;
 import ru.yandex.finance_tracker.dto.input.TransactionRequest;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
-import ru.yandex.finance_tracker.exception.AccessDeniedException;
 import ru.yandex.finance_tracker.exception.CurrencyMismatchException;
 import ru.yandex.finance_tracker.exception.InsufficientBalanceException;
 import ru.yandex.finance_tracker.model.*;
@@ -30,13 +29,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @AutoConfigureMockMvc
-public class TransactionServiceTest extends BaseIntegrationTest {
+public class TransactionServiceTest extends ContainersForTests {
 
     @Autowired
     private AccountRepository accountRepository;
@@ -185,8 +183,7 @@ public class TransactionServiceTest extends BaseIntegrationTest {
                 account.getBalance().add(request.getAmount())
                         .compareTo(updated.getBalance()) == 0
         );
-
-        assertNotNull(transactionRepository.findById(result.transactionId()));
+        assertTrue(transactionRepository.findById(result.transactionId()).isPresent());
     }
 
     @Test
@@ -226,7 +223,7 @@ public class TransactionServiceTest extends BaseIntegrationTest {
                 account.getBalance().subtract(request.getAmount())
                         .compareTo(updated.getBalance()) == 0
         );
-        assertNotNull(transactionRepository.findById(result.transactionId()));
+        assertTrue(transactionRepository.findById(result.transactionId()).isPresent());
     }
 
     @Test

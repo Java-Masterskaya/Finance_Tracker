@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-public interface TransactionRepository extends JpaRepository<Transaction, Integer> {
+public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     Page<Transaction> findByAccountId(Long accountId, PageRequest pageRequest);
 
     @Query("SELECT SUM(t.amount) " +

@@ -65,6 +65,7 @@ public class TransactionServiceImpl implements TransactionService {
         Transaction transaction = mapper.toEntity(request);
         transaction.setAccount(account);
         transaction.setUser(account.getUser());
+        transaction.setAmount(transaction.getAmount().setScale(2, RoundingMode.HALF_UP));
 
         accountRepository.save(account);
         Transaction saved = transactionRepository.save(transaction);
@@ -77,8 +78,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     /** Считаем баланс, в зависимости от типа операции вычитаем или складываем */
     private BigDecimal calculateNewBalance(BigDecimal currentBalance, Type type, BigDecimal amount) {
-        BigDecimal result = type == Type.INCOME ? currentBalance.add(amount) : currentBalance.subtract(amount);
-        return result.setScale(2, RoundingMode.HALF_UP);
+        return type == Type.INCOME ? currentBalance.add(amount) : currentBalance.subtract(amount);
     }
 
     /**

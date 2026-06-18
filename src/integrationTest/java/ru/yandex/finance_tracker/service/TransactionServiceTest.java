@@ -2,46 +2,57 @@ package ru.yandex.finance_tracker.service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.web.servlet.MockMvc;
+import ru.yandex.finance_tracker.baseclasses.ContainersForTests;
 import ru.yandex.finance_tracker.dto.input.TransactionRequest;
+import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
+import ru.yandex.finance_tracker.exception.CurrencyMismatchException;
 import ru.yandex.finance_tracker.exception.InsufficientBalanceException;
-import ru.yandex.finance_tracker.model.Account;
-import ru.yandex.finance_tracker.model.Currency;
-import ru.yandex.finance_tracker.model.Type;
-import ru.yandex.finance_tracker.model.User;
+import ru.yandex.finance_tracker.model.*;
+import ru.yandex.finance_tracker.security.service.JwtService;
 import ru.yandex.finance_tracker.storage.AccountRepository;
+import ru.yandex.finance_tracker.storage.TransactionRepository;
 import ru.yandex.finance_tracker.storage.UserRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doAnswer;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@Testcontainers
-public class TransactionServiceTest {
 
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16.1");
-
-    @Autowired
-    private TransactionService transactionService;
+@AutoConfigureMockMvc
+public class TransactionServiceTest extends ContainersForTests {
 
     @Autowired
     private AccountRepository accountRepository;
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private TransactionRepository transactionRepository;
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private JwtService jwtService;
+
+    @MockitoSpyBean
+    private TransactionService transactionService;
 
     @Test
     public void shouldPreventDoubleSpendingUnderHighConcurrency() throws InterruptedException {
@@ -131,5 +142,200 @@ public class TransactionServiceTest {
 
         Account updatedAccount = accountRepository.findById(account.getId()).orElseThrow();
         assertThat(updatedAccount.getBalance()).isEqualTo(new BigDecimal("-50.00"));
+    }
+
+    @Test
+    void shouldCreateIncomeTransaction() {
+        User user = userRepository.findById(1L).orElseThrow(() -> new RuntimeException("User not found"));
+
+        Account account = new Account(
+                null,
+                user,
+                "Income Test",
+                Currency.RUB,
+                BigDecimal.valueOf(100),
+                false
+        );
+        account = accountRepository.save(account);
+
+        TransactionRequest request = new TransactionRequest(
+                account.getId(),
+                Type.INCOME,
+                BigDecimal.valueOf(50),
+                Currency.RUB,
+                "Test2",
+                LocalDate.now(),
+                "Test2"
+        );
+
+        TransactionInfoDto result =
+                transactionService.createTransaction(
+                        user.getId(),
+                        request
+                );
+
+        Account updated =
+                accountRepository.findById(account.getId())
+                        .orElseThrow();
+
+        assertNotNull(result);
+        assertTrue(
+                account.getBalance().add(request.getAmount())
+                        .compareTo(updated.getBalance()) == 0
+        );
+        assertTrue(transactionRepository.findById(result.transactionId()).isPresent());
+    }
+
+    @Test
+    void shouldCreateExpenseTransaction() {
+        User user = userRepository.findById(1L).orElseThrow(() -> new RuntimeException("User not found"));
+
+        Account account = new Account(
+                null,
+                user,
+                "Expense Test",
+                Currency.RUB,
+                BigDecimal.valueOf(100),
+                false
+        );
+        account = accountRepository.save(account);
+
+        TransactionRequest request = new TransactionRequest(
+                account.getId(),
+                Type.EXPENSE,
+                BigDecimal.valueOf(50),
+                Currency.RUB,
+                "test",
+                LocalDate.now(),
+                "test"
+        );
+
+        TransactionInfoDto result = transactionService.createTransaction(
+                user.getId(),
+                request
+        );
+
+        Account updated =
+                accountRepository.findById(account.getId())
+                        .orElseThrow();
+
+        assertTrue(
+                account.getBalance().subtract(request.getAmount())
+                        .compareTo(updated.getBalance()) == 0
+        );
+        assertTrue(transactionRepository.findById(result.transactionId()).isPresent());
+    }
+
+    @Test
+    void accountBalanceShouldNotChangeWhenCurrencyIsDifferent() {
+        User user = userRepository.findById(1L).orElseThrow(() -> new RuntimeException("User not found"));
+        Account account = new Account(
+                null,
+                user,
+                "Currency test",
+                Currency.RUB,
+                BigDecimal.valueOf(100),
+                false
+        );
+
+        account = accountRepository.save(account);
+
+        TransactionRequest request = new TransactionRequest(
+                account.getId(),
+                Type.EXPENSE,
+                BigDecimal.valueOf(50),
+                Currency.EUR,
+                "test",
+                LocalDate.now(),
+                "test"
+        );
+        assertThrows(CurrencyMismatchException.class, () -> transactionService.createTransaction(
+                user.getId(),
+                request
+        ));
+
+        assertTrue(
+                account.getBalance()
+                        .compareTo(accountRepository.findById(account.getId()).get().getBalance()) == 0
+        );
+    }
+
+    @Test
+    void shouldReturnConflictWhenRequestWithSameIdempotencyKeyAlreadyInProgress() throws Exception {
+        Integer transactionCount = transactionRepository.findAll().size();
+        User user = userRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Account account = accountRepository.save(new Account(
+                null,
+                user,
+                "Idempotency Test",
+                Currency.RUB,
+                BigDecimal.valueOf(100),
+                false
+        ));
+
+        String token = jwtService.generateToken(user.getId());
+        UUID idempotencyKey = UUID.randomUUID();
+
+        String body = """
+                {
+                  "accountId": %d,
+                  "type": "INCOME",
+                  "amount": 100,
+                  "currency": "RUB",
+                  "category": "salary",
+                  "date": "2026-06-16",
+                  "description": "test"
+                }
+                """.formatted(account.getId());
+
+        CountDownLatch serviceEntered = new CountDownLatch(1);
+        CountDownLatch allowFinish = new CountDownLatch(1);
+
+        doAnswer(invocation -> {
+
+            serviceEntered.countDown();
+
+            allowFinish.await(10, TimeUnit.SECONDS);
+
+            return invocation.callRealMethod();
+
+        }).when(transactionService).createTransaction(anyLong(), any());
+
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        Future<?> first = executor.submit(() ->
+                mockMvc.perform(post("/v1/transactions")
+                                .header("Authorization", "Bearer " + token)
+                                .header("X-Idempotency-Key", idempotencyKey.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
+                        .andExpect(status().isCreated())
+        );
+
+        assertTrue(serviceEntered.await(5, TimeUnit.SECONDS),
+                "First request did not enter service");
+
+        mockMvc.perform(post("/v1/transactions")
+                        .header("Authorization", "Bearer " + token)
+                        .header("X-Idempotency-Key", idempotencyKey.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isConflict());
+
+        allowFinish.countDown();
+
+        first.get(10, TimeUnit.SECONDS);
+
+        executor.shutdown();
+
+        List<Transaction> txs = transactionRepository.findAll();
+        assertThat(txs).hasSize(transactionCount + 1);
+
+        Account updated = accountRepository.findById(account.getId()).orElseThrow();
+        assertThat(updated.getBalance())
+                .isEqualByComparingTo("200");
     }
 }

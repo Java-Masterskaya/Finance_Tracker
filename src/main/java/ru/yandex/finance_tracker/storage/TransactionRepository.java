@@ -9,7 +9,7 @@ import ru.yandex.finance_tracker.dto.output.CategoryExpenseDto;
 import ru.yandex.finance_tracker.model.Transaction;
 import ru.yandex.finance_tracker.model.Type;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.List;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Integer> {
@@ -19,8 +19,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
             "FROM Transaction t " +
             "WHERE t.user.id = :userId AND t.date >= :start AND t.date <= :end AND t.type = :type")
     Float sumAmountByUserIdAndDateBetween(@Param("userId") Long userId,
-                                          @Param("start") LocalDate start,
-                                          @Param("end") LocalDate end,
+                                          @Param("start") Instant start,
+                                          @Param("end") Instant end,
                                           @Param("type") Type type);
 
     @Query("SELECT new ru.yandex.finance_tracker.dto.output.CategoryExpenseDto(t.category, CAST(SUM(t.amount) AS float)) " +
@@ -28,6 +28,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
             "WHERE t.user.id = :userId AND t.date >= :start AND t.date <= :end AND t.type = 'EXPENSE' " +
             "GROUP BY t.category")
     List<CategoryExpenseDto> getExpenseByCategory(@Param("userId") Long userId,
-                                                  @Param("start") LocalDate start,
-                                                  @Param("end") LocalDate end);
+                                                  @Param("start") Instant start,
+                                                  @Param("end") Instant end);
 }

@@ -37,6 +37,9 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     List<Transaction> transactions;
 
+    @Column(name = "timezone", nullable = false)
+    private String timezone = "UTC";
+
 
     public User(String email, String passwordHash, String firstName, UserRole role) {
         this.email = email;

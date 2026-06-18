@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.yandex.finance_tracker.model.Currency;
 
+import java.math.BigDecimal;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,5 +22,7 @@ public class AccountCreateRequest {
     private Currency currency;
     @NotNull
     @PositiveOrZero
-    private Float initialBalance;
+    private BigDecimal initialBalance;
+    @NotNull(message = "Укажите, разрешен ли овердрафт")
+    private Boolean overdraftAllowed;
 }

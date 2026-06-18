@@ -11,5 +11,5 @@ public interface AccountService {
 
     AccountInfoDto createAccount(Long userId, AccountCreateRequest request);
 
-    List<TransactionInfoDto> getTransactionsByAccountId(Long accountId,  int page, int size);
+    List<TransactionInfoDto> getTransactionsByAccountId(Long userId, Long accountId,  int page, int size);
 }

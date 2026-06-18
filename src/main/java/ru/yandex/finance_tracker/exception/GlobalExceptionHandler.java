@@ -162,6 +162,21 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, "Bad Request", message);
     }
 
+    /**
+     * Обрабатывает исключение нехватки средств на счёте.
+     * <p>
+     * Выбрасывается, когда сумма списания превышает текущий баланс аккаунта,
+     * и овердрафт для данного счёта запрещён.
+     * </p>
+     *
+     * @param ex исключение InsufficientBalanceException
+     * @return ResponseEntity с информацией об ошибке и статусом 400 (Bad Request)
+     */
+    @ExceptionHandler(InsufficientBalanceException.class)
+    public ResponseEntity<ApiError> handleInsufficientBalance(final InsufficientBalanceException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Insufficient Funds", ex.getMessage());
+    }
+
     private ResponseEntity<ApiError> buildResponse(HttpStatus status, String error, String message) {
         ApiError apiError = ApiError.builder()
                 .timestamp(LocalDateTime.now())

@@ -76,6 +76,14 @@ admin:
   email: ${ADMIN_EMAIL:admin@example.com} # Email администратора (можно переопределить через ADMIN_EMAIL)
   password: ${ADMIN_PASSWORD:admin123}    # Пароль администратора (можно переопределить через ADMIN_PASSWORD)
 
+springdoc:
+  api-docs:
+    enabled: true
+  paths-to-match: /empty
+  swagger-ui:
+    url: /v3/api-docs-static
+    path: /swagger-ui.html
+
   # Конфигурация GeoIP сервиса для определения временной зоны по IP
 geo:
   api:

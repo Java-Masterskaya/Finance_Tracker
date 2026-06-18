@@ -12,7 +12,7 @@ public class ValidationConfig implements WebMvcConfigurer {
     @Bean
     public OpenApiInteractionValidator openApiValidator() {
         return OpenApiInteractionValidator
-                .createForSpecificationUrl("classpath:finance_openapi.yaml")
+                .createForSpecificationUrl("/finance_openapi.yaml")
                 .build();
     }
 

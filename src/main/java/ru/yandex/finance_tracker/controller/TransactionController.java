@@ -1,19 +1,20 @@
 package ru.yandex.finance_tracker.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.constraints.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.finance_tracker.dto.input.TransactionRequest;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
-import ru.yandex.finance_tracker.exception.IdempotencyKeyException;
-import ru.yandex.finance_tracker.exception.ServerErrorException;
+import ru.yandex.finance_tracker.exception.*;
 import ru.yandex.finance_tracker.idempotency.IdempotencyService;
 import ru.yandex.finance_tracker.security.dto.AuthInfo;
 import ru.yandex.finance_tracker.service.TransactionService;
-import ru.yandex.finance_tracker.validation.IdempotencyValidator;
 
 import java.util.Optional;
 
@@ -21,19 +22,19 @@ import java.util.Optional;
 @RequestMapping("/v1/transactions")
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 public class TransactionController {
     private final TransactionService transactionService;
     private final IdempotencyService idempotencyService;
-    private final IdempotencyValidator idempotencyValidator;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public TransactionInfoDto createTransaction(@Valid @RequestBody TransactionRequest request,
                                                 @AuthenticationPrincipal AuthInfo authInfo,
-                                                @RequestHeader(value = "X-Idempotency-Key") String iKey) {
 
-        log.debug("Валидация ключа идемпотентности ikey={}", iKey);
-        idempotencyValidator.validateKey(iKey);
+                                                @NotBlank(message = "Idempotency key is required")
+                                                @UUID(message = "Idempotency key must have UUID format")
+                                                @RequestHeader(value = "X-Idempotency-Key") String iKey) {
 
         Optional<TransactionInfoDto> cachedResponse = idempotencyService.getCachedResponse(iKey);
         if (cachedResponse.isPresent()) {
@@ -52,7 +53,13 @@ public class TransactionController {
             idempotencyService.cacheResponse(iKey, response);
             log.info("POST /v1/transactions finished: transactionId={}", response.transactionId());
             return response;
+        } catch (InsufficientBalanceException |
+                 NotFoundException |
+                 CurrencyMismatchException e) {
+            idempotencyService.unlock(iKey);
+            throw e;
         } catch (Exception e) {
+            log.error("Unexpected error during transaction processing", e);
             idempotencyService.unlock(iKey);
             throw new ServerErrorException("Fail during transaction operation");
         }

@@ -9,6 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+
 @AllArgsConstructor
 @Entity
 @Table(name = "users")
@@ -39,7 +40,6 @@ public class User {
 
     @Column(name = "timezone", nullable = false)
     private String timezone = "UTC";
-
 
     public User(String email, String passwordHash, String firstName, UserRole role) {
         this.email = email;

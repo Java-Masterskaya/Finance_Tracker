@@ -42,7 +42,7 @@ databaseChangeLog:
                   remarks: "Роль (ROLE_USER, ROLE_ADMIN)"
               - column:
                   name: timezone
-                  type: VARCHAR(100)
+                  type: VARCHAR(50)
                   defaultValue: "UTC"
                   constraints:
                     nullable: false

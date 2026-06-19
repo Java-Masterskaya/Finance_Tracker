@@ -5,9 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.finance_tracker.dto.output.CategoryExpenseDto;
 import ru.yandex.finance_tracker.dto.output.MonthlyReportDto;
+import ru.yandex.finance_tracker.exception.NotFoundException;
 import ru.yandex.finance_tracker.model.Type;
-import ru.yandex.finance_tracker.security.utils.SecurityUtils;
+import ru.yandex.finance_tracker.model.User;
 import ru.yandex.finance_tracker.storage.TransactionRepository;
+import ru.yandex.finance_tracker.storage.UserRepository;
 
 import java.time.*;
 import java.math.BigDecimal;
@@ -19,12 +21,15 @@ import java.util.List;
 @Slf4j
 public class ReportServiceImpl implements ReportService {
     private final TransactionRepository transactionRepository;
-    private final SecurityUtils securityUtils;
+    private final UserRepository userRepository;
 
     public MonthlyReportDto getMonthlyReport(Long userId, int year, int month) {
         log.info("Начало формирования отчета для пользователя ID: {} за период: {}-{}", userId, year, month);
 
-        ZoneId userZone = ZoneId.of(securityUtils.getCurrentUser().getTimezone());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found with ID: " + userId));
+
+        ZoneId userZone = ZoneId.of(user.getTimezone());
 
         YearMonth yearMonth = YearMonth.of(year, month);
         ZonedDateTime startOfMonth = yearMonth.atDay(1).atStartOfDay(userZone);
@@ -38,14 +43,14 @@ public class ReportServiceImpl implements ReportService {
         BigDecimal totalExpense = transactionRepository.sumAmountByUserIdAndDateBetween(userId, startUTC, endUTC, Type.EXPENSE);
         log.debug("Агрегированные данные: доход={}, расход={}", totalIncome, totalExpense);
 
-        List<CategoryExpenseDto> byCategory = transactionRepository.getExpenseByCategory(userId, start, end);
+        List<CategoryExpenseDto> byCategory = transactionRepository.getExpenseByCategory(userId, startUTC, endUTC);
         log.info("Найдено категорий расходов: {}", byCategory != null ? byCategory.size() : 0);
         BigDecimal defaultZero = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
         return new MonthlyReportDto(
                 totalIncome != null ? totalIncome.setScale(2, RoundingMode.HALF_UP) : defaultZero,
                 totalExpense != null ? totalExpense.setScale(2, RoundingMode.HALF_UP) : defaultZero,
-                byCategory
+                byCategory != null ? byCategory : List.of()
         );
     }
 }

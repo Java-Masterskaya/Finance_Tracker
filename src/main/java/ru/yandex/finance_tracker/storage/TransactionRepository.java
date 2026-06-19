@@ -10,7 +10,6 @@ import ru.yandex.finance_tracker.model.Transaction;
 import ru.yandex.finance_tracker.model.Type;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.Instant;
 import java.util.List;
 

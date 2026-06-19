@@ -8,8 +8,8 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import ru.yandex.finance_tracker.exception.InvalidTimezoneException;
+import ru.yandex.finance_tracker.exception.NotFoundException;
 import ru.yandex.finance_tracker.model.User;
-import ru.yandex.finance_tracker.security.utils.SecurityUtils;
 import ru.yandex.finance_tracker.storage.UserRepository;
 import ru.yandex.finance_tracker.timezones.dto.TimezoneRequest;
 
@@ -24,7 +24,6 @@ import java.util.Optional;
 public class TimezoneServiceImpl implements TimezoneService {
     private static final String GEO_API_URL = "http://ip-api.com/json/%s?fields=timezone";
     private final RestTemplate restTemplate;
-    private final SecurityUtils securityUtils;
     private final UserRepository userRepository;
 
     public void addTimezone(Long userId, TimezoneRequest request) {
@@ -34,7 +33,8 @@ public class TimezoneServiceImpl implements TimezoneService {
             throw new InvalidTimezoneException(request.getTimezone());
         }
 
-        User user = securityUtils.getCurrentUser();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found with ID: " + userId));
         user.setTimezone(request.getTimezone());
         userRepository.save(user);
     }

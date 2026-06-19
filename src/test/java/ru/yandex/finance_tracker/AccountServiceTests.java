@@ -18,6 +18,7 @@ import ru.yandex.finance_tracker.exception.AccessDeniedException;
 import ru.yandex.finance_tracker.mapper.AccountMapper;
 import ru.yandex.finance_tracker.mapper.TransactionMapper;
 import ru.yandex.finance_tracker.model.*;
+import ru.yandex.finance_tracker.security.utils.SecurityUtils;
 import ru.yandex.finance_tracker.service.AccountService;
 import ru.yandex.finance_tracker.service.AccountServiceImpl;
 import ru.yandex.finance_tracker.service.TransactionService;
@@ -47,6 +48,8 @@ public class AccountServiceTests {
     private TransactionRepository transactionRepository;
     private TransactionMapper transactionMapper = Mappers.getMapper(TransactionMapper.class);
     private AccountService accountService;
+    @Mock
+    private SecurityUtils securityUtils;
 
     @BeforeEach
     void setUp() {
@@ -55,7 +58,8 @@ public class AccountServiceTests {
                 userRepository,
                 mapper,
                 transactionRepository,
-                transactionMapper
+                transactionMapper,
+                securityUtils
         );
     }
 

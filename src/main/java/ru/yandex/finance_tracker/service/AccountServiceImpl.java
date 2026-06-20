@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.finance_tracker.dto.input.AccountCreateRequest;
 import ru.yandex.finance_tracker.dto.output.AccountInfoDto;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
-import ru.yandex.finance_tracker.exception.AccessDeniedException;
 import ru.yandex.finance_tracker.exception.NotFoundException;
 import ru.yandex.finance_tracker.mapper.AccountMapper;
 import ru.yandex.finance_tracker.mapper.TransactionMapper;

@@ -5,12 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.finance_tracker.dto.output.CategoryExpenseDto;
 import ru.yandex.finance_tracker.dto.output.MonthlyReportDto;
+import ru.yandex.finance_tracker.exception.InvalidReportDateException;
 import ru.yandex.finance_tracker.model.Type;
 import ru.yandex.finance_tracker.storage.TransactionRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
@@ -22,6 +24,10 @@ public class ReportServiceImpl implements ReportService {
 
     public MonthlyReportDto getMonthlyReport(Long userId, int year, int month) {
         log.info("Начало формирования отчета для пользователя ID: {} за период: {}-{}", userId, year, month);
+
+        if (YearMonth.of(year, month).isAfter(YearMonth.now())) {
+            throw new InvalidReportDateException(year, month);
+        }
 
         LocalDate start = LocalDate.of(year, month, 1);
         LocalDate end = start.with(TemporalAdjusters.lastDayOfMonth());

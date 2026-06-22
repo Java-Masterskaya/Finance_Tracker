@@ -177,6 +177,21 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, "Insufficient Funds", ex.getMessage());
     }
 
+    /**
+     * Обрабатывает исключение, возникающее при некорректной дате.
+     * <p>
+     * Исключение выбрасывается, когда дата в будущем.
+     * Возвращает статус 400 (Bad Request) с информацией об ошибке.
+     * </p>
+     *
+     * @param ex исключение, содержащее сообщение о несоответствии даты
+     * @return ResponseEntity с подробностями валидации и статусом 400 (Bad Request)
+     */
+    @ExceptionHandler(InvalidReportDateException.class)
+    public ResponseEntity<ApiError> handleInvalidReportDate(final InvalidReportDateException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Validation Failed", ex.getMessage());
+    }
+
     private ResponseEntity<ApiError> buildResponse(HttpStatus status, String error, String message) {
         ApiError apiError = ApiError.builder()
                 .timestamp(LocalDateTime.now())

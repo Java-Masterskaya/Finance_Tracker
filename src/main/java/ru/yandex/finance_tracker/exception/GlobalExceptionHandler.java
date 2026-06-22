@@ -3,11 +3,9 @@ package ru.yandex.finance_tracker.exception;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.server.ServerErrorException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 
@@ -177,20 +175,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidReportDateException.class)
     public ResponseEntity<ApiError> handleInvalidReportDate(final InvalidReportDateException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, "Validation Failed", ex.getMessage());
-    }
-
-    /**
-     * Обрабатывает общее исключение, возникающее при неправильной работе сервера.
-     * <p>
-     * Возвращает статус 500 (Internal Server Error) с информацией об ошибке.
-     * </p>
-     *
-     * @param ex исключение, содержащее сообщение в какой части программы произошел сбой
-     * @return ResponseEntity с подробностями и статусом 500 (Internal Server Error)
-     */
-    @ExceptionHandler(ServerErrorException.class)
-    public ResponseEntity<ApiError> handleServerError(ServerErrorException ex) {
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", ex.getMessage());
     }
 
     private ResponseEntity<ApiError> buildResponse(HttpStatus status, String error, String message) {

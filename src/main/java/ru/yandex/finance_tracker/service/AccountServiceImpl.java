@@ -2,18 +2,22 @@ package ru.yandex.finance_tracker.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.finance_tracker.dto.input.AccountCreateRequest;
+import ru.yandex.finance_tracker.dto.input.AccountUpdateRequest;
 import ru.yandex.finance_tracker.dto.output.AccountInfoDto;
+import ru.yandex.finance_tracker.dto.output.PagedTransactionResponse;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
-import ru.yandex.finance_tracker.exception.AccessDeniedException;
+import ru.yandex.finance_tracker.exception.BadRequestException;
 import ru.yandex.finance_tracker.exception.NotFoundException;
 import ru.yandex.finance_tracker.mapper.AccountMapper;
 import ru.yandex.finance_tracker.mapper.TransactionMapper;
 import ru.yandex.finance_tracker.model.Account;
+import ru.yandex.finance_tracker.model.Transaction;
 import ru.yandex.finance_tracker.model.User;
 import ru.yandex.finance_tracker.storage.AccountRepository;
 import ru.yandex.finance_tracker.storage.TransactionRepository;
@@ -36,14 +40,13 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public List<AccountInfoDto> getAccountsByUserId(Long userId) {
         log.info("Запрос списка счетов для пользователя с ID: {}", userId);
-        if (userRepository.existsById(userId)) {
-            List<Account> accounts = accountRepository.findByUserId(userId);
-            log.info("Найдено счетов: {} для пользователя ID: {}", accounts.size(), userId);
-            return mapper.toDtoList(accounts);
-        } else {
+        if (!userRepository.existsById(userId)) {
             log.error("Ошибка получения счетов: пользователь с ID {} не существует", userId);
             throw new NotFoundException("User with ID %d not found".formatted(userId));
         }
+        List<Account> accounts = accountRepository.findByUserIdAndIsDeletedFalse(userId);
+        log.info("Найдено счетов: {} для пользователя ID: {}", accounts.size(), userId);
+        return mapper.toDtoList(accounts);
     }
 
     @Transactional
@@ -68,20 +71,68 @@ public class AccountServiceImpl implements AccountService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<TransactionInfoDto> getTransactionsByAccountId(Long userId, Long accountId, int page, int size) {
+    public PagedTransactionResponse getTransactionsByAccountId(Long userId, Long accountId, int page, int size) {
         log.info("Запрос транзакций для аккаунта с ID: {}", accountId);
-        if (accountRepository.existsByIdAndUserId(accountId, userId)) {
-            PageRequest pageRequest = PageRequest.of(page, size, Sort.by("date").descending());
-            return transactionRepository
-                    .findByAccountId(accountId, pageRequest)
-                    .stream()
-                    .map(transactionMapper::toResponse)
-                    .collect(Collectors.toList());
 
-        } else {
-            log.error("Ошибка получения транзакций: аккаунта с ID {} "
-                    + "не существует или не принадлежит пользователю {}", accountId, userId);
-            throw new AccessDeniedException("Account with ID %d not found or access denied".formatted(accountId));
+        accountRepository.findByIdAndUserIdAndIsDeletedFalse(accountId, userId)
+                .orElseThrow(() -> {
+                    log.error("Ошибка получения транзакций: аккаунт с ID {} не существует," +
+                            " удален или не принадлежит пользователю {}", accountId, userId);
+                    return new NotFoundException("Account not found or access denied");
+                });
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("date").descending());
+        Page<Transaction> transactionPage = transactionRepository.findByAccount_IdAndIsDeletedFalse(accountId, pageRequest);
+
+        List<TransactionInfoDto> content = transactionPage.getContent().stream()
+                .map(transactionMapper::toResponse)
+                .collect(Collectors.toList());
+
+        return PagedTransactionResponse.builder()
+                .content(content)
+                .page(transactionPage.getNumber())
+                .size(transactionPage.getSize())
+                .totalElements(transactionPage.getTotalElements())
+                .totalPages(transactionPage.getTotalPages())
+                .build();
+    }
+
+    @Transactional
+    @Override
+    public AccountInfoDto updateAccount(Long userId, Long accountId, AccountUpdateRequest request) {
+        log.info("Запрос на изменение счета {}, от пользователя: {}", accountId, userId);
+
+        Account account = accountRepository.findByIdAndUserIdAndIsDeletedFalse(accountId, userId)
+                .orElseThrow(() -> new NotFoundException("Account not found or access denied"));
+
+        if (request.name() != null && !request.name().isBlank()) {
+            log.debug("Изменение названия счета old: {}, new: {}", account.getName(), request.name());
+            account.setName(request.name());
         }
+
+        if (request.overdraftAllowed() != null) {
+            if (!request.overdraftAllowed() && account.getBalance().compareTo(java.math.BigDecimal.ZERO) < 0) {
+                throw new BadRequestException("Cannot disable overdraft while account balance is negative");
+            }
+            log.debug("Изменение возможности кредита на: {}", request.overdraftAllowed());
+            account.setOverdraftAllowed(request.overdraftAllowed());
+        }
+
+        return mapper.toDto(accountRepository.save(account));
+    }
+
+    @Transactional
+    @Override
+    public void deleteAccount(Long userId, Long accountId) {
+        log.info("Запрос на удаление счета {}, от пользователя: {}", accountId, userId);
+
+        Account account = accountRepository.findByIdAndUserIdAndIsDeletedFalse(accountId, userId)
+                .orElseThrow(() -> new NotFoundException("Account not found or access denied"));
+
+        account.setDeleted(true);
+        accountRepository.save(account);
+        transactionRepository.softDeleteAllByAccountId(accountId);
+
+        log.info("Счет ID: {} и все его транзакции удален пользователем: {}", accountId, userId);
     }
 }

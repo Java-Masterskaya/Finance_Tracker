@@ -26,7 +26,7 @@ databaseChangeLog:
                   name: password_hash
                   type: VARCHAR(60)
                   constraints:
-                      nullable: false
+                    nullable: false
                   remarks: "Хеш пароля (BCrypt)"
               - column:
                   name: name
@@ -38,15 +38,8 @@ databaseChangeLog:
                   name: role
                   type: VARCHAR(20)
                   constraints:
-                      nullable: false
-                  remarks: "Роль (ROLE_USER, ROLE_ADMIN)"
-              - column:
-                  name: timezone
-                  type: VARCHAR(50)
-                  defaultValue: "UTC"
-                  constraints:
                     nullable: false
-                  remarks: "Часовой пояс пользователя (например, Europe/Moscow)"
+                  remarks: "Роль (ROLE_USER, ROLE_ADMIN)"
 
   - changeSet:
       id: 20260509-002

@@ -27,7 +27,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JwtResponse'
         '400':
-          description: Ошибка валидации полей
+          description: Ошибка валидации входящих полей.
           content:
             application/json:
               schema:
@@ -36,23 +36,11 @@ paths:
                 error: "Validation Failed"
                 message: "password: User password length must be between 10 and 60 characters"
                 status: 400
-                timestamp: "2026-05-29 12:00:00"
-        '409':
-          description: Конфликт — email занят
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-              example:
-                error: "Conflict"
-                message: "User with email user@example.com already exists"
-                status: 409
-                timestamp: "2026-05-29 12:00:00"
+                timestamp: "2026-06-24T17:15:00.000Z"
 
   /api/login:
     post:
-      summary: Аутентификация пользователя (Вход в личный кабинет)
-      description: Проверяет учетные данные и возвращает JWT-токен.
+      summary: Аутентификация пользователя
       requestBody:
         required: true
         content:
@@ -66,34 +54,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JwtResponse'
-        '404':
-          description: Пользователь не найден (не зарегистрирован)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-              example:
-                error: "Resource Not Found"
-                message: "User with email = user2@example.com was not found"
-                status: 404
-                timestamp: "2026-05-29 12:00:00"
-        '403':
-          description: Ошибка ввода пароля
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-              example:
-                error: "Forbidden"
-                message: "/api/login"
-                status: 403
-                timestamp: "2026-05-29 12:00:00"
 
   /api/v1/accounts:
     get:
       summary: Получить список счетов пользователя
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       responses:
         '200':
           description: Успешный ответ со списком счетов пользователя
@@ -103,22 +69,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AccountInfoDto'
-        '403':
-          description: Не соответствие userId и токена
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-              example:
-                error: "Access Denied"
-                message: "Access denied: You do not have permission to access or modify another user's resources"
-                status: 403
-                timestamp: "2026-05-29 12:00:00"
-
     post:
       summary: Создание нового счета
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       requestBody:
         required: true
         content:
@@ -132,23 +86,148 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AccountInfoDto'
-        '403':
-          description: Не соответствие userId и токена
+        '400':
+          description: Ошибка валидации полей счета
+
+  /api/v1/accounts/{accountId}:
+    put:
+      summary: Обновить настройки счета
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountUpdateRequest'
+      responses:
+        '200':
+          description: Счет успешно обновлен
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiError'
-              example:
-                error: "Access Denied"
-                message: "Access denied: You do not have permission to access or modify another user's resources"
-                status: 403
-                timestamp: "2026-05-29 12:00:00"
+                $ref: '#/components/schemas/AccountInfoDto'
+        '400':
+          description: Неверный формат данных
+        '404':
+          description: Счет не найден
+    delete:
+      summary: Удалить счет
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '204':
+          description: Счет успешно удален (No Content)
+        '404':
+          description: Счет не найден
+
+  /api/v1/accounts/{accountId}/transaction:
+    get:
+      summary: Получить историю транзакций по конкретному счету
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 20
+      responses:
+        '200':
+          description: Успешный ответ с пагинацией
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedTransactionResponse'
+
+  /api/v1/categories:
+    get:
+      summary: Получить список всех категорий
+      responses:
+        '200':
+          description: Список категорий получен
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryInfoDto'
+    post:
+      summary: Создать новую категорию (Доступно только ADMIN)
+      security:
+        - BearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryCreateRequest'
+      responses:
+        '201':
+          description: Категория создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryInfoDto'
+        '400':
+          description: Ошибка валидации имени категории
+        '403':
+          description: Доступ запрещен (не ADMIN)
+
+  /api/v1/categories/{categoryId}:
+    delete:
+      summary: Удалить категорию (Доступно только ADMIN)
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '204':
+          description: Категория удалена
+        '403':
+          description: Доступ запрещен
 
   /api/v1/transactions:
     post:
       summary: Добавить новую транзакцию с поддержкой идемпотентности
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       parameters:
         - name: X-Idempotency-Key
           in: header
@@ -171,28 +250,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/TransactionInfoDto'
         '400':
-          description: Ошибка валидации полей, отсутствие ключа или нехватка средств
+          description: Ошибка бизнес-логики или валидации данных.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               examples:
-                MissingIdempotencyKey:
-                  summary: Отсутствует ключ идемпотентности / ошибка валидации
-                  value:
-                    error: "Validation Failed"
-                    message: "Idempotency key is missing"
-                    status: 400
-                    timestamp: "2026-05-29 12:00:00"
                 InsufficientFunds:
-                  summary: Недостаточно средств на счете (овердрафт запрещен)
+                  summary: Нехватка средств
                   value:
                     error: "Insufficient Funds"
-                    message: "Запрещено списание без овердрафта. Баланс=0.00, Попытка списания=5000.0"
+                    message: "Недостаточно средств на счете. Баланс: 0.00, Попытка списания: 5000.00"
                     status: 400
-                    timestamp: "2026-05-29 12:00:00"
+                    timestamp: "2026-06-24T17:15:00.000Z"
+                CurrencyMismatch:
+                  summary: Несовпадение валюты
+                  value:
+                    error: "Currency Mismatch"
+                    message: "Несовпадение валюты. Валюта счёта ID = 1 - RUB, валюта операции - USD"
+                    status: 400
+                    timestamp: "2026-06-24T17:15:00.000Z"
+                ValidationFailed:
+                  summary: Ошибка формата данных
+                  value:
+                    error: "Validation Failed"
+                    message: "amount: Минимальная сумма транзакции — 0.01"
+                    status: 400
+                    timestamp: "2026-06-24T17:15:00.000Z"
         '409':
-          description: Попытка отправить запрос с одним и тем же ключом идемпотентности
+          description: Конфликт параллельной обработки ключа идемпотентности.
           content:
             application/json:
               schema:
@@ -201,42 +287,49 @@ paths:
                 error: "Idempotency key already in use"
                 message: "Duplicate request in progress"
                 status: 409
-                timestamp: "2026-05-29 12:00:00"
+                timestamp: "2026-06-24T17:15:00.000Z"
 
-  /api/v1/accounts/{accountId}/transaction:
-    get:
-      summary: Получить историю транзакций по конкретному счету
+  /api/v1/transactions/{transactionId}:
+    put:
+      summary: Изменить существующую транзакцию
       security:
         - BearerAuth: [ ]
       parameters:
-        - name: accountId
+        - name: transactionId
           in: path
           required: true
           schema:
             type: integer
             format: int64
             minimum: 1
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 0
-            minimum: 0
-        - name: size
-          in: query
-          schema:
-            type: integer
-            default: 20
-            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionUpdateRequest'
       responses:
         '200':
-          description: Успешный ответ со списком транзакций
+          description: Транзакция успешно обновлена
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TransactionInfoDto'
+                $ref: '#/components/schemas/TransactionInfoDto'
+    delete:
+      summary: Удалить транзакцию
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: transactionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '204':
+          description: Транзакция удалена
 
   /api/v1/reports/monthly:
     get:
@@ -249,6 +342,8 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 2000
+            maximum: 2100
             example: 2026
         - name: month
           in: query
@@ -264,8 +359,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MonthlyReport'
-
+                $ref: '#/components/schemas/MonthlyReportDto'
 
 components:
   securitySchemes:
@@ -277,10 +371,7 @@ components:
   schemas:
     RegistrationRequest:
       type: object
-      required:
-        - email
-        - password
-        - firstName
+      required: [ email, password, firstName, timezone ]
       properties:
         email:
           type: string
@@ -295,15 +386,10 @@ components:
           example: "password1234567890"
         firstName:
           type: string
-          minLength: 2
-          maxLength: 30
-          example: "Иван"
 
     LoginRequest:
       type: object
-      required:
-        - email
-        - password
+      required: [ email, password ]
       properties:
         email:
           type: string
@@ -328,26 +414,35 @@ components:
 
     AccountCreateRequest:
       type: object
-      required:
-        - name
-        - currency
-        - initialBalance
-        - overdraftAllowed
+      required: [ name, currency, initialBalance, overdraftAllowed ]
       properties:
         name:
           type: string
+          maxLength: 100
           example: "Инвестиционный счет"
         currency:
           type: string
-          enum: [RUB, EUR, USD]
+          enum: [ RUB, EUR, USD ]
           example: "RUB"
         initialBalance:
           type: number
-          format: float
-          example: 5000.0
+          format: decimal
+          minimum: 0
+          example: 5000.00
         overdraftAllowed:
           type: boolean
           example: false
+
+    AccountUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          example: "Новое название счета"
+        overdraftAllowed:
+          type: boolean
+          example: true
 
     AccountInfoDto:
       type: object
@@ -361,64 +456,74 @@ components:
           example: "Зарплатная карта"
         currency:
           type: string
-          enum: [RUB, EUR, USD]
+          enum: [ RUB, EUR, USD ]
           example: "RUB"
         balance:
           type: number
-          format: float
-          example: 150500.50
+          format: decimal
+          example: 150000.50
         overdraftAllowed:
           type: boolean
-          example: false
 
-    TransactionRequest:
+    CategoryCreateRequest:
       type: object
-      required:
-        - accountId
-        - type
-        - amount
-        - currency
-        - category
-        - date
+      required: [ name ]
       properties:
-        accountId:
+        name:
+          type: string
+          maxLength: 50
+          example: "Продукты"
+
+    CategoryInfoDto:
+      type: object
+      properties:
+        id:
           type: integer
           format: int64
           example: 1
-        type:
+        name:
           type: string
-          enum: [INCOME, EXPENSE]
-          example: "EXPENSE"
-        amount:
-          type: number
-          format: float
-          minimum: 0.01
-          example: 1500.0
-        currency:
-          type: string
-          enum: [ RUB, EUR, USD ]
-          example: "RUB"
+          example: "Продукты"
+
+    CategoryExpenseDto:
+      type: object
+      properties:
         category:
           type: string
           example: "Супермаркеты"
-        date:
-          type: string
-          format: date
-          example: "2026-05-24"
-        description:
-          type: string
-          example: "Покупка продуктов"
+        totalExpense:
+          type: number
+          format: decimal
+          example: 25400.00
 
-    TransactionInfoDto:
+    MonthlyReportDto:
       type: object
       properties:
-        transactionId:
-          type: integer
-          format: int64
-          example: 1
+        totalIncome:
+          type: number
+          format: decimal
+          example: 120000.00
+        totalExpense:
+          type: number
+          format: decimal
+          example: 45000.00
+        balanceDifference:
+          type: number
+          format: decimal
+          example: 75000.00
+        expenseByCategory:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryExpenseDto'
+
+    TransactionRequest:
+      type: object
+      required: [ accountId, type, amount, currency, categoryId, date ]
+      properties:
         accountId:
           type: integer
           format: int64
+          minimum: 1
           example: 1
         type:
           type: string
@@ -426,49 +531,107 @@ components:
           example: "EXPENSE"
         amount:
           type: number
-          format: float
+          format: decimal
+          minimum: 0.01
+          example: 1500.00
+        currency:
+          type: string
+          enum: [ RUB, EUR, USD ]
+          example: "RUB"
+        categoryId:
+          type: integer
+          format: int64
+          minimum: 1
+          example: 2
+        date:
+          type: string
+          format: date-time
+          example: "2026-06-24T14:30:00.000Z"
+        description:
+          type: string
+          maxLength: 300
+          example: "Покупка продуктов"
+
+    TransactionUpdateRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: decimal
+          minimum: 0.01
+          example: 1800.00
+        type:
+          type: string
+          enum: [ INCOME, EXPENSE ]
+        categoryId:
+          type: integer
+          format: int64
+          minimum: 1
+        date:
+          type: string
+          format: date-time
+          example: "2026-06-24T15:00:00.000Z"
+        description:
+          type: string
+          maxLength: 300
+
+    TransactionInfoDto:
+      type: object
+      properties:
+        transactionId:
+          type: integer
+          format: int64
+          example: 105
+        accountId:
+          type: integer
+          format: int64
+          example: 1
+        type:
+          type: string
+          enum: [ INCOME, EXPENSE ]
+        amount:
+          type: number
+          format: decimal
           example: 1500.00
         category:
           type: string
-          example: "Супермаркеты"
+          example: "Продукты"
         date:
           type: string
-          format: date
-          example: "2026-05-24"
+          format: date-time
+          example: "2026-06-24T14:30:00.000Z"
         description:
           type: string
           example: "Покупка продуктов"
         accountBalance:
           type: number
-          format: float
+          format: decimal
           example: 98500.00
 
-    MonthlyReport:
+    PagedTransactionResponse:
       type: object
       properties:
-        totalIncome:
-          type: number
-          format: float
-          example: 200000.0
-        totalExpense:
-          type: number
-          format: float
-          example: 45000.0
-        expenseByCategory:
+        content:
           type: array
           items:
-            type: object
-            properties:
-              category:
-                type: string
-                example: "Супермаркеты"
-              totalExpense:
-                type: number
-                format: float
-                example: 25000.0
+            $ref: '#/components/schemas/TransactionInfoDto'
+        page:
+          type: integer
+          example: 0
+        size:
+          type: integer
+          example: 20
+        totalElements:
+          type: integer
+          format: int64
+          example: 42
+        totalPages:
+          type: integer
+          example: 3
 
     ApiError:
       type: object
+      required: [ error, message, status, timestamp ]
       properties:
         error:
           type: string

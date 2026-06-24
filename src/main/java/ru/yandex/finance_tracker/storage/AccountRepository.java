@@ -14,12 +14,10 @@ import java.util.Optional;
 @Repository
 public interface AccountRepository extends JpaRepository<Account, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT a FROM Account a WHERE a.id = :id AND a.user.id = :userId")
+    @Query("SELECT a FROM Account a WHERE a.id = :id AND a.user.id = :userId AND a.isDeleted = false")
     Optional<Account> findByIdAndUserIdWithLock(@Param("id") Long id, @Param("userId") Long userId);
 
-    List<Account> findByUserId(Long userId);
+    List<Account> findByUserIdAndIsDeletedFalse(Long userId);
 
-    Optional<Account> findByIdAndUserId(Long id, Long userId);
-
-    boolean existsByIdAndUserId(Long id, Long userId);
+    Optional<Account> findByIdAndUserIdAndIsDeletedFalse(Long id, Long userId);
 }

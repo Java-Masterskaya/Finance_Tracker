@@ -1,21 +1,21 @@
 package ru.yandex.finance_tracker.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
 import ru.yandex.finance_tracker.dto.input.TransactionRequest;
+import ru.yandex.finance_tracker.dto.input.TransactionUpdateRequest;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
 import ru.yandex.finance_tracker.model.Transaction;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface TransactionMapper {
 
+    @Mapping(target = "transactionId", source = "id")
     @Mapping(target = "accountId", source = "account.id")
-    @Mapping(target = "accountBalance", source = "account.balance")
+    @Mapping(target = "category", source = "category.name")
     TransactionInfoDto toResponse(Transaction transaction);
 
-    @Mapping(target = "transactionId", ignore = true)
-    @Mapping(target = "account", ignore = true)
-    @Mapping(target = "user", ignore = true)
-    Transaction toEntity (TransactionRequest request);
+    Transaction toEntity(TransactionRequest request);
 
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateTransactionFromDto(TransactionUpdateRequest request, @MappingTarget Transaction transaction);
 }

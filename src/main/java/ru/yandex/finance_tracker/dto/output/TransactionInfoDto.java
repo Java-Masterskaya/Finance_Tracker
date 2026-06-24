@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import ru.yandex.finance_tracker.model.Type;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.Instant;
 
 public record TransactionInfoDto(
         Long transactionId,
@@ -12,8 +12,8 @@ public record TransactionInfoDto(
         Type type,
         BigDecimal amount,
         String category,
-        @JsonFormat(pattern = "yyyy-MM-dd")
-        LocalDate date,
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone = "UTC")
+        Instant date,
         String description,
         BigDecimal accountBalance
 ) {

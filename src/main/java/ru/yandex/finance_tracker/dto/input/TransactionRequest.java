@@ -1,10 +1,7 @@
 package ru.yandex.finance_tracker.dto.input;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +10,7 @@ import ru.yandex.finance_tracker.model.Type;
 import ru.yandex.finance_tracker.validation.validator.ValidTransaction;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.Instant;
 
 @Data
 @AllArgsConstructor
@@ -28,18 +25,20 @@ public class TransactionRequest {
     private Type type;
 
     @NotNull(message = "Amount is required")
+    @DecimalMin(value = "0.01", message = "Минимальная сумма транзакции — 0.01")
+    @Digits(integer = 12, fraction = 2, message = "Разрешено максимум 2 знака после запятой")
     private BigDecimal amount;
 
     @NotNull
     private Currency currency;
 
-    @Size(max = 50, message = "Category length must be shorter than 50 symbols")
-    @NotBlank(message = "Category is required")
-    private String category;
+    @NotNull
+    @Positive
+    private Long categoryId;
 
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone = "UTC")
     @NotNull(message = "date is required")
-    private LocalDate date;
+    private Instant date;
 
     @Size(max = 300, message = "Transaction description must be shorter than 300 symbols")
     private String description;

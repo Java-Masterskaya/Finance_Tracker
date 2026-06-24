@@ -5,7 +5,6 @@ import ru.yandex.finance_tracker.model.Type;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDate;
 
 public record TransactionInfoDto(
         Long transactionId,

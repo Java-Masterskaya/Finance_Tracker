@@ -13,5 +13,6 @@ import java.util.List;
 public class MonthlyReportDto {
     private BigDecimal totalIncome;
     private BigDecimal totalExpense;
+    private BigDecimal balanceDifference;
     private List<CategoryExpenseDto> expenseByCategory;
 }

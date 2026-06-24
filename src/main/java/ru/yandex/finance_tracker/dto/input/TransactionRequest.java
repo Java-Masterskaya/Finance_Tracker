@@ -13,6 +13,7 @@ import ru.yandex.finance_tracker.model.Type;
 import ru.yandex.finance_tracker.validation.validator.ValidTransaction;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 
 @Data
@@ -37,9 +38,9 @@ public class TransactionRequest {
     @NotBlank(message = "Category is required")
     private String category;
 
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
     @NotNull(message = "date is required")
-    private LocalDate date;
+    private Instant date;
 
     @Size(max = 300, message = "Transaction description must be shorter than 300 symbols")
     private String description;

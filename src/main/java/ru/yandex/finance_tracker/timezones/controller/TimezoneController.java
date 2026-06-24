@@ -14,16 +14,16 @@ import ru.yandex.finance_tracker.timezones.model.Timezone;
 import java.util.List;
 
 @RestController
-@RequestMapping("v1/users/timezone")
+@RequestMapping("/v1/users/timezone")
 @RequiredArgsConstructor
 public class TimezoneController {
     private final TimezoneServiceImpl timezoneService;
 
     @PutMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public void addTimezone(@Valid @RequestBody TimezoneRequest request,
-                                        @AuthenticationPrincipal AuthInfo authInfo) {
-        timezoneService.addTimezone(authInfo.getId(), request);
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateTimezone(@Valid @RequestBody TimezoneRequest request,
+                            @AuthenticationPrincipal AuthInfo authInfo) {
+        timezoneService.updateTimezone(authInfo.getId(), request);
 
     }
 

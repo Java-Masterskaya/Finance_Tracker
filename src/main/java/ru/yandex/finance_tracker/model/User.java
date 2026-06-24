@@ -39,7 +39,7 @@ public class User {
     List<Transaction> transactions;
 
     @Column(name = "timezone", nullable = false)
-    private String timezone = "UTC";
+    private String timezone;
 
     public User(String email, String passwordHash, String firstName, UserRole role) {
         this.email = email;

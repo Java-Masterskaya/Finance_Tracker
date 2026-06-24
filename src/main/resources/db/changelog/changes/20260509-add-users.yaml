@@ -40,13 +40,6 @@ databaseChangeLog:
                   constraints:
                       nullable: false
                   remarks: "Роль (ROLE_USER, ROLE_ADMIN)"
-              - column:
-                  name: timezone
-                  type: VARCHAR(50)
-                  defaultValue: "UTC"
-                  constraints:
-                    nullable: false
-                  remarks: "Часовой пояс пользователя (например, Europe/Moscow)"
 
   - changeSet:
       id: 20260509-002

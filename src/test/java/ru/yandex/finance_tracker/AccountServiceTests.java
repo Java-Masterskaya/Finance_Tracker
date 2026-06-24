@@ -11,17 +11,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import ru.yandex.finance_tracker.dto.input.AccountCreateRequest;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
-import ru.yandex.finance_tracker.exception.AccessDeniedException;
+import ru.yandex.finance_tracker.exception.NotFoundException;
 import ru.yandex.finance_tracker.mapper.AccountMapper;
 import ru.yandex.finance_tracker.mapper.TransactionMapper;
 import ru.yandex.finance_tracker.model.*;
 import ru.yandex.finance_tracker.service.AccountService;
 import ru.yandex.finance_tracker.service.AccountServiceImpl;
-import ru.yandex.finance_tracker.service.TransactionService;
-import ru.yandex.finance_tracker.service.TransactionServiceImpl;
 import ru.yandex.finance_tracker.storage.AccountRepository;
 import ru.yandex.finance_tracker.storage.TransactionRepository;
 import ru.yandex.finance_tracker.storage.UserRepository;
@@ -156,7 +153,7 @@ public class AccountServiceTests {
     }
 
     @Test
-    void shouldThrowAccessDeniedExceptionWhenAccountNotBelongToUser() {
+    void shouldThrowNotFoundExceptionWhenAccountNotBelongToUser() {
 
         Long userId = 1L;
         Long accountId = 10L;
@@ -165,7 +162,7 @@ public class AccountServiceTests {
                 .thenReturn(false);
 
         assertThrows(
-                AccessDeniedException.class,
+                NotFoundException.class,
                 () -> accountService.getTransactionsByAccountId(
                         userId,
                         accountId,

@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.finance_tracker.dto.input.AccountCreateRequest;
 import ru.yandex.finance_tracker.dto.output.AccountInfoDto;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
-import ru.yandex.finance_tracker.exception.AccessDeniedException;
 import ru.yandex.finance_tracker.exception.NotFoundException;
 import ru.yandex.finance_tracker.mapper.AccountMapper;
 import ru.yandex.finance_tracker.mapper.TransactionMapper;
@@ -69,7 +68,7 @@ public class AccountServiceImpl implements AccountService {
     @Transactional(readOnly = true)
     @Override
     public List<TransactionInfoDto> getTransactionsByAccountId(Long userId, Long accountId, int page, int size) {
-        log.info("Запрос транзакций для аккаунта с ID: {}", accountId);
+        log.info("Запрос транзакций для аккаунта с ID: {} от пользователя ID: {}", accountId, userId);
         if (accountRepository.existsByIdAndUserId(accountId, userId)) {
             PageRequest pageRequest = PageRequest.of(page, size, Sort.by("date").descending());
             return transactionRepository
@@ -79,9 +78,8 @@ public class AccountServiceImpl implements AccountService {
                     .collect(Collectors.toList());
 
         } else {
-            log.error("Ошибка получения транзакций: аккаунта с ID {} "
-                    + "не существует или не принадлежит пользователю {}", accountId, userId);
-            throw new AccessDeniedException("Account with ID %d not found or access denied".formatted(accountId));
+            log.warn("Предупреждение: аккаунт с ID {} не существует или не принадлежит пользователю {}", accountId, userId);
+            throw new NotFoundException("Account with ID %d not found".formatted(accountId));
         }
     }
 }

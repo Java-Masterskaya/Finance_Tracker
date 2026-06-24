@@ -11,7 +11,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import ru.yandex.finance_tracker.dto.input.AccountCreateRequest;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
 import ru.yandex.finance_tracker.exception.AccessDeniedException;
@@ -20,14 +19,12 @@ import ru.yandex.finance_tracker.mapper.TransactionMapper;
 import ru.yandex.finance_tracker.model.*;
 import ru.yandex.finance_tracker.service.AccountService;
 import ru.yandex.finance_tracker.service.AccountServiceImpl;
-import ru.yandex.finance_tracker.service.TransactionService;
-import ru.yandex.finance_tracker.service.TransactionServiceImpl;
 import ru.yandex.finance_tracker.storage.AccountRepository;
 import ru.yandex.finance_tracker.storage.TransactionRepository;
 import ru.yandex.finance_tracker.storage.UserRepository;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -97,6 +94,8 @@ public class AccountServiceTests {
         Long userId = 1L;
         Long accountId = 10L;
 
+        Instant now = Instant.now();
+
         Account account = new Account();
         account.setId(accountId);
         account.setBalance(BigDecimal.valueOf(1000));
@@ -111,7 +110,7 @@ public class AccountServiceTests {
                 BigDecimal.valueOf(100),
                 Currency.RUB,
                 "test",
-                LocalDate.now(),
+                now,
                 "test123",
                 user
         );
@@ -123,7 +122,7 @@ public class AccountServiceTests {
                 Type.INCOME,
                 BigDecimal.valueOf(100),
                 "test",
-                LocalDate.now(),
+                now,
                 "test123",
                 BigDecimal.valueOf(1000)
         );

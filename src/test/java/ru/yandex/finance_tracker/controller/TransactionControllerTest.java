@@ -24,7 +24,7 @@ import ru.yandex.finance_tracker.security.dto.AuthInfo;
 import ru.yandex.finance_tracker.service.TransactionService;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -62,7 +62,7 @@ public class TransactionControllerTest {
     public void shouldReturn400_WhenInsufficientBalanceExceptionIsThrown() throws Exception {
         // Arrange
         TransactionRequest request = new TransactionRequest(
-                1L, Type.EXPENSE, new BigDecimal("150.00"), Currency.RUB, "test", LocalDate.now(), "test"
+                1L, Type.EXPENSE, new BigDecimal("150.00"), Currency.RUB, "test", Instant.now(), "test"
         );
 
         when(idempotencyService.getCachedResponse(any())).thenReturn(Optional.empty());

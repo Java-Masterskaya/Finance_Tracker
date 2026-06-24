@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.yandex.finance_tracker.baseclasses.PostgreSQLContainerForTests;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
-import ru.yandex.finance_tracker.exception.AccessDeniedException;
+import ru.yandex.finance_tracker.exception.NotFoundException;
 import ru.yandex.finance_tracker.model.*;
 import ru.yandex.finance_tracker.storage.AccountRepository;
 import ru.yandex.finance_tracker.storage.TransactionRepository;
@@ -78,20 +78,19 @@ public class AccountServiceTests extends PostgreSQLContainerForTests {
     }
 
     @Test
-    void shouldThrowAccessDeniedWhenAccountNotBelongsToUser() {
-
+    void shouldThrowNotFoundExceptionWhenAccountNotBelongsToUser() {
         User user = userRepository.findById(1L).orElseThrow();
 
         Account account = accountRepository.save(new Account(
                 null,
                 user,
-                "shouldThrowAccessDeniedWhenAccountNotBelongsToUser",
+                "shouldThrowNotFoundExceptionWhenAccountNotBelongsToUser",
                 Currency.RUB,
                 BigDecimal.valueOf(100),
                 false
         ));
 
-        assertThrows(AccessDeniedException.class,
+        assertThrows(NotFoundException.class,
                 () -> accountService.getTransactionsByAccountId(
                         999L,
                         account.getId(),

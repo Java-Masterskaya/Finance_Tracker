@@ -13,7 +13,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import ru.yandex.finance_tracker.dto.input.AccountCreateRequest;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
-import ru.yandex.finance_tracker.exception.AccessDeniedException;
+import ru.yandex.finance_tracker.exception.NotFoundException;
 import ru.yandex.finance_tracker.mapper.AccountMapper;
 import ru.yandex.finance_tracker.mapper.TransactionMapper;
 import ru.yandex.finance_tracker.model.*;
@@ -155,7 +155,7 @@ public class AccountServiceTests {
     }
 
     @Test
-    void shouldThrowAccessDeniedExceptionWhenAccountNotBelongToUser() {
+    void shouldThrowNotFoundExceptionWhenAccountNotBelongToUser() {
 
         Long userId = 1L;
         Long accountId = 10L;
@@ -164,7 +164,7 @@ public class AccountServiceTests {
                 .thenReturn(false);
 
         assertThrows(
-                AccessDeniedException.class,
+                NotFoundException.class,
                 () -> accountService.getTransactionsByAccountId(
                         userId,
                         accountId,

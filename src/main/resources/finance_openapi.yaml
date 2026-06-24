@@ -27,7 +27,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JwtResponse'
         '400':
-          description: Ошибка валидации полей
+          description: Ошибка валидации входящих полей (длина пароля, формат email, некорректное имя).
           content:
             application/json:
               schema:
@@ -38,7 +38,7 @@ paths:
                 status: 400
                 timestamp: "2026-05-29 12:00:00"
         '409':
-          description: Конфликт — email занят
+          description: Конфликт уникальности. Пользователь с таким email уже зарегистрирован в системе.
           content:
             application/json:
               schema:
@@ -103,17 +103,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AccountInfoDto'
-        '403':
-          description: Не соответствие userId и токена
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-              example:
-                error: "Access Denied"
-                message: "Access denied: You do not have permission to access or modify another user's resources"
-                status: 403
-                timestamp: "2026-05-29 12:00:00"
 
     post:
       summary: Создание нового счета
@@ -127,21 +116,21 @@ paths:
               $ref: '#/components/schemas/AccountCreateRequest'
       responses:
         '201':
-          description: Счет успешно создан
+          description: Счет успешно создан для текущего пользователя (определяется по JWT).
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AccountInfoDto'
-        '403':
-          description: Не соответствие userId и токена
+        '400':
+          description: Ошибка валидации входящих полей (неверный формат валюты или некорректное имя счета).
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
-                error: "Access Denied"
-                message: "Access denied: You do not have permission to access or modify another user's resources"
-                status: 403
+                error: "Validation Failed"
+                message: "currency: must be one of RUB, EUR, USD"
+                status: 400
                 timestamp: "2026-05-29 12:00:00"
 
   /api/v1/transactions:
@@ -165,34 +154,61 @@ paths:
               $ref: '#/components/schemas/TransactionRequest'
       responses:
         '201':
-          description: Транзакция успешно добавлена
+          description: Транзакция успешно добавлена (или возвращена из кэша идемпотентности)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TransactionInfoDto'
         '400':
-          description: Ошибка валидации полей, отсутствие ключа или нехватка средств
+          description: Ошибка бизнес-логики или валидации при создании транзакции.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               examples:
-                MissingIdempotencyKey:
-                  summary: Отсутствует ключ идемпотентности / ошибка валидации
-                  value:
-                    error: "Validation Failed"
-                    message: "Idempotency key is missing"
-                    status: 400
-                    timestamp: "2026-05-29 12:00:00"
                 InsufficientFunds:
-                  summary: Недостаточно средств на счете (овердрафт запрещен)
+                  summary: Нехватка средств (овердрафт запрещен)
                   value:
                     error: "Insufficient Funds"
-                    message: "Запрещено списание без овердрафта. Баланс=0.00, Попытка списания=5000.0"
+                    message: "Недостаточно средств на счете. Баланс: 0.00, Попытка списания: 5000.0"
+                    status: 400
+                    timestamp: "2026-06-20 12:00:00"
+                CurrencyMismatch:
+                  summary: Несовпадение валюты операции и счёта
+                  value:
+                    error: "Currency Mismatch"
+                    message: "Несовпадение валюты. Валюта счёта ID = 1 - RUB, валюта операции - USD"
                     status: 400
                     timestamp: "2026-05-29 12:00:00"
+                ValidationFailed:
+                  summary: Ошибка формата данных или отсутствие заголовка
+                  value:
+                    error: "Validation Failed"
+                    message: "Idempotency key is missing / amount must be greater than 0"
+                    status: 400
+                    timestamp: "2026-05-29 12:00:00"
+        '404':
+          description: Указанный в теле запроса accountId не найден, либо этот счёт не принадлежит текущему пользователю.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error: "Resource Not Found"
+                message: "Счет не найден с id: 1"
+                status: 404
+                timestamp: "2026-05-29 12:00:00"
         '409':
-          description: Попытка отправить запрос с одним и тем же ключом идемпотентности
+          description: |
+            Конфликт идемпотентности (Duplicate request). 
+            Если для данного ключа в Redis уже существует запись ответа idempotency-key (хранится 12 часов),
+            API автоматически вернет сохраненный успешный ответ (статус 201).
+            
+            Если ответа в кэше нет,
+            система пытается установить распределенную блокировку idempotency-key на 180 секунд.
+            
+            Статус 409 возвращается в случае, если распределенная блокировка уже удерживается другим параллельным потоком.
+            Это означает, что идентичный запрос прямо сейчас находится в процессе обработки базой данных.
           content:
             application/json:
               schema:
@@ -237,6 +253,17 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/TransactionInfoDto'
+        '404':
+          description: Указанный счет не найден или не принадлежит текущему пользователю.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error: "Resource Not Found"
+                message: "Счет не найден с id: 123"
+                status: 404
+                timestamp: "2026-05-29 12:00:00"
 
   /api/v1/reports/monthly:
     get:

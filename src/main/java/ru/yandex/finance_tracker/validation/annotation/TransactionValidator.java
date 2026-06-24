@@ -6,7 +6,7 @@ import ru.yandex.finance_tracker.dto.input.TransactionRequest;
 import ru.yandex.finance_tracker.validation.validator.ValidTransaction;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.Instant;
 
 public class TransactionValidator implements ConstraintValidator<ValidTransaction, TransactionRequest> {
 
@@ -14,7 +14,7 @@ public class TransactionValidator implements ConstraintValidator<ValidTransactio
     public boolean isValid(TransactionRequest transactionRequest,
                            ConstraintValidatorContext constraintValidatorContext) {
         BigDecimal amount = transactionRequest.getAmount();
-        LocalDate date = transactionRequest.getDate();
+        Instant date = transactionRequest.getDate();
 
         return isValidTransactionAmount(amount, constraintValidatorContext)
                 && isValidTransactionDate(date, constraintValidatorContext);
@@ -39,7 +39,7 @@ public class TransactionValidator implements ConstraintValidator<ValidTransactio
         return true;
     }
 
-    private boolean isValidTransactionDate(LocalDate date,
+    private boolean isValidTransactionDate(Instant date,
                                            ConstraintValidatorContext context) {
         if (date == null) {
             buildValidationError(context,
@@ -47,7 +47,7 @@ public class TransactionValidator implements ConstraintValidator<ValidTransactio
                     "date");
             return false;
         } else {
-            if (date.isAfter(LocalDate.now())) {
+            if (date.isAfter(Instant.now())) {
                 buildValidationError(context,
                         "The date cannot be a future date",
                         "date");

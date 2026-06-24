@@ -96,7 +96,7 @@ public class TransactionControllerTest {
     @Test
     public void shouldReturn404_WhenNotFoundExceptionIsThrown() throws Exception {
         TransactionRequest request = new TransactionRequest(
-                1L, Type.EXPENSE, new BigDecimal("50.00"), Currency.RUB, "test", LocalDate.now(), "test"
+                1L, Type.EXPENSE, new BigDecimal("50.00"), Currency.RUB, "test", Instant.now(), "test"
         );
 
         when(idempotencyService.getCachedResponse(any())).thenReturn(Optional.empty());
@@ -119,7 +119,7 @@ public class TransactionControllerTest {
     @Test
     public void shouldReturn409_WhenIdempotencyKeyLockIsHeld() throws Exception {
         TransactionRequest request = new TransactionRequest(
-                1L, Type.INCOME, new BigDecimal("100.00"), Currency.RUB, "test", LocalDate.now(), "test"
+                1L, Type.INCOME, new BigDecimal("100.00"), Currency.RUB, "test", Instant.now(), "test"
         );
 
         when(idempotencyService.getCachedResponse(any())).thenReturn(Optional.empty());
@@ -140,10 +140,10 @@ public class TransactionControllerTest {
     @Test
     public void shouldReturnCachedResponse_WhenIdempotencyKeyExists() throws Exception {
         TransactionRequest request = new TransactionRequest(
-                1L, Type.INCOME, new BigDecimal("100.00"), Currency.RUB, "test", LocalDate.now(), "test"
+                1L, Type.INCOME, new BigDecimal("100.00"), Currency.RUB, "test", Instant.now(), "test"
         );
 
-        TransactionInfoDto cachedResponse = new TransactionInfoDto(1L, 1L, Type.INCOME, BigDecimal.TEN, "test", LocalDate.now(), "test",
+        TransactionInfoDto cachedResponse = new TransactionInfoDto(1L, 1L, Type.INCOME, BigDecimal.TEN, "test", Instant.now(), "test",
                 BigDecimal.valueOf(100.00));
         when(idempotencyService.getCachedResponse(any())).thenReturn(Optional.of(cachedResponse));
 
@@ -164,7 +164,7 @@ public class TransactionControllerTest {
     @Test
     public void shouldReturn500_WhenUnexpectedExceptionIsThrown() throws Exception {
         TransactionRequest request = new TransactionRequest(
-                1L, Type.EXPENSE, new BigDecimal("10.00"), Currency.RUB, "test", LocalDate.now(), "test"
+                1L, Type.EXPENSE, new BigDecimal("10.00"), Currency.RUB, "test", Instant.now(), "test"
         );
 
         when(idempotencyService.getCachedResponse(any())).thenReturn(Optional.empty());
@@ -187,11 +187,11 @@ public class TransactionControllerTest {
     @Test
     public void shouldReturn201_WhenTransactionCreatedSuccessfully() throws Exception {
         TransactionRequest request = new TransactionRequest(
-                1L, Type.INCOME, new BigDecimal("200.00"), Currency.RUB, "Salary", LocalDate.now(), "test"
+                1L, Type.INCOME, new BigDecimal("200.00"), Currency.RUB, "Salary", Instant.now(), "test"
         );
 
         TransactionInfoDto response = new TransactionInfoDto(42L, 1L, Type.INCOME, new BigDecimal("200.00"),
-                "Salary", LocalDate.now(), "test", new BigDecimal("200.00"));
+                "Salary", Instant.now(), "test", new BigDecimal("200.00"));
 
         when(idempotencyService.getCachedResponse(any())).thenReturn(Optional.empty());
         when(idempotencyService.tryLock(any())).thenReturn(true);

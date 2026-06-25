@@ -12,11 +12,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import ru.yandex.finance_tracker.dto.input.AccountCreateRequest;
+import ru.yandex.finance_tracker.dto.output.AccountInfoDto;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
 import ru.yandex.finance_tracker.exception.NotFoundException;
 import ru.yandex.finance_tracker.mapper.AccountMapper;
 import ru.yandex.finance_tracker.mapper.TransactionMapper;
 import ru.yandex.finance_tracker.model.*;
+import ru.yandex.finance_tracker.security.utils.SecurityUtils;
 import ru.yandex.finance_tracker.service.AccountService;
 import ru.yandex.finance_tracker.service.AccountServiceImpl;
 import ru.yandex.finance_tracker.storage.AccountRepository;
@@ -28,6 +30,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -44,6 +47,8 @@ public class AccountServiceTests {
     private TransactionRepository transactionRepository;
     private TransactionMapper transactionMapper = Mappers.getMapper(TransactionMapper.class);
     private AccountService accountService;
+    @Mock
+    private SecurityUtils securityUtils;
 
     @BeforeEach
     void setUp() {
@@ -52,7 +57,8 @@ public class AccountServiceTests {
                 userRepository,
                 mapper,
                 transactionRepository,
-                transactionMapper
+                transactionMapper,
+                securityUtils
         );
     }
 
@@ -174,6 +180,47 @@ public class AccountServiceTests {
         verify(accountRepository)
                 .existsByIdAndUserId(accountId, userId);
 
+        verifyNoInteractions(transactionRepository);
+    }
+
+    @Test
+    void shouldReturnAccountsForCurrentUser() {
+        Long userId = 1L;
+        when(securityUtils.getCurrentUserId()).thenReturn(userId);
+        when(userRepository.existsById(userId)).thenReturn(true);
+
+        List<Account> accounts = List.of(new Account(), new Account());
+        when(accountRepository.findByUserId(userId)).thenReturn(accounts);
+
+        List<AccountInfoDto> result = accountService.getAccountsByUserId(userId);
+
+        assertThat(result).hasSize(2);
+        verify(accountRepository).findByUserId(userId);
+    }
+
+    @Test
+    void shouldThrowAccessDeniedWhenRequestingAnotherUserAccounts() {
+        Long currentUserId = 1L;
+        Long requestedUserId = 2L;
+
+        when(securityUtils.getCurrentUserId()).thenReturn(currentUserId);
+
+        assertThrows(AccessDeniedException.class,
+                () -> accountService.getAccountsByUserId(requestedUserId));
+    }
+
+    @Test
+    void shouldThrowAccessDeniedWhenAccountDoesNotBelongToUser() {
+        Long userId = 1L;
+        Long accountId = 999L;
+
+        when(accountRepository.existsByIdAndUserId(accountId, userId))
+                .thenReturn(false);
+
+        assertThrows(AccessDeniedException.class,
+                () -> accountService.getTransactionsByAccountId(userId, accountId, 0, 20));
+
+        verify(accountRepository).existsByIdAndUserId(accountId, userId);
         verifyNoInteractions(transactionRepository);
     }
 }

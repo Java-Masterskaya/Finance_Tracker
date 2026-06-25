@@ -14,6 +14,7 @@ import ru.yandex.finance_tracker.mapper.AccountMapper;
 import ru.yandex.finance_tracker.mapper.TransactionMapper;
 import ru.yandex.finance_tracker.model.Account;
 import ru.yandex.finance_tracker.model.User;
+import ru.yandex.finance_tracker.security.utils.SecurityUtils;
 import ru.yandex.finance_tracker.storage.AccountRepository;
 import ru.yandex.finance_tracker.storage.TransactionRepository;
 import ru.yandex.finance_tracker.storage.UserRepository;
@@ -30,19 +31,26 @@ public class AccountServiceImpl implements AccountService {
     private final AccountMapper mapper;
     private final TransactionRepository transactionRepository;
     private final TransactionMapper transactionMapper;
+    private final SecurityUtils securityUtils;
 
     @Transactional(readOnly = true)
     @Override
     public List<AccountInfoDto> getAccountsByUserId(Long userId) {
         log.info("Запрос списка счетов для пользователя с ID: {}", userId);
-        if (userRepository.existsById(userId)) {
-            List<Account> accounts = accountRepository.findByUserId(userId);
-            log.info("Найдено счетов: {} для пользователя ID: {}", accounts.size(), userId);
-            return mapper.toDtoList(accounts);
-        } else {
+        Long currentUserId = securityUtils.getCurrentUserId();
+        if (!userId.equals(currentUserId)) {
+            log.error("Попытка доступа к чужим счетам: userId = {}", userId);
+            throw new AccessDeniedException("You can only access your own accounts");
+        }
+
+        if (!userRepository.existsById(userId)) {
             log.error("Ошибка получения счетов: пользователь с ID {} не существует", userId);
             throw new NotFoundException("User with ID %d not found".formatted(userId));
         }
+
+        List<Account> accounts = accountRepository.findByUserId(userId);
+        log.info("Найдено счетов: {} для пользователя ID: {}", accounts.size(), userId);
+        return mapper.toDtoList(accounts);
     }
 
     @Transactional

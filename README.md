@@ -359,6 +359,31 @@ public ResponseEntity<Account> getAccount(@PathVariable Long accountId) {
 "path": "/api/v1/transactions"
 }
 ```
+
+## Kafka события
+
+### Событие о крупном расходе (large-expense-alert)
+
+Публикуется автоматически при создании транзакции с типом `EXPENSE` на сумму выше заданного порога.
+
+**Порог крупной траты:** настраивается в конфигурации
+
+```yaml
+finance:
+  kafka:
+    large-expense-threshold: 50000 
+```
+**Пример события**
+```json
+{
+"correlationId": "550e8400-e29b-41d4-a716-446655440000",
+"userId": 2,
+"accountId": 1,
+"amount": 75000.00,
+"category": "Техника",
+"timestamp": "2026-06-03T15:30:00Z"
+}
+```
 ---
 
 ## Документация и Тестирование (API & QA)

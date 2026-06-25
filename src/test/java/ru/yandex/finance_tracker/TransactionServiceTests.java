@@ -12,6 +12,7 @@ import ru.yandex.finance_tracker.dto.input.TransactionRequest;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
 import ru.yandex.finance_tracker.exception.CurrencyMismatchException;
 import ru.yandex.finance_tracker.exception.InsufficientBalanceException;
+import ru.yandex.finance_tracker.kafka.LargeExpenseProducer;
 import ru.yandex.finance_tracker.mapper.TransactionMapper;
 import ru.yandex.finance_tracker.model.Account;
 import ru.yandex.finance_tracker.model.Transaction;
@@ -21,13 +22,14 @@ import ru.yandex.finance_tracker.service.TransactionServiceImpl;
 import ru.yandex.finance_tracker.storage.AccountRepository;
 import ru.yandex.finance_tracker.storage.TransactionRepository;
 
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TransactionServiceTests {
@@ -38,15 +40,26 @@ class TransactionServiceTests {
     @Mock
     private TransactionRepository transactionRepository;
 
+    @Mock
+    private LargeExpenseProducer largeExpenseProducer;
+
     private TransactionService service;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         service = new TransactionServiceImpl(
                 accountRepository,
                 transactionRepository,
-                Mappers.getMapper(TransactionMapper.class)
+                Mappers.getMapper(TransactionMapper.class),
+                largeExpenseProducer
         );
+
+        Field field = TransactionServiceImpl.class
+                .getDeclaredField("largeExpenseThreshold");
+        field.setAccessible(true);
+        field.set(service, new BigDecimal("50000"));
+
+        lenient().doNothing().when(largeExpenseProducer).send(any());
     }
 
     @ParameterizedTest

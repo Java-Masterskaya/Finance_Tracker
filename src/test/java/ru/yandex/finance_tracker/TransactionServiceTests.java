@@ -51,7 +51,7 @@ class TransactionServiceTests {
                 Mappers.getMapper(TransactionMapper.class),
                 largeExpenseProducer
         );
-        doNothing().when(largeExpenseProducer).send(any());
+        lenient().doNothing().when(largeExpenseProducer).send(any());
     }
 
     @ParameterizedTest

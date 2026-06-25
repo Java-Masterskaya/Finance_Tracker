@@ -2,6 +2,7 @@ package ru.yandex.finance_tracker.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.finance_tracker.dto.input.TransactionRequest;
@@ -9,6 +10,8 @@ import ru.yandex.finance_tracker.exception.CurrencyMismatchException;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
 import ru.yandex.finance_tracker.exception.InsufficientBalanceException;
 import ru.yandex.finance_tracker.exception.NotFoundException;
+import ru.yandex.finance_tracker.kafka.LargeExpenseProducer;
+import ru.yandex.finance_tracker.kafka.LargeExpenseAlertEvent;
 import ru.yandex.finance_tracker.mapper.TransactionMapper;
 import ru.yandex.finance_tracker.model.Account;
 import ru.yandex.finance_tracker.model.Transaction;
@@ -18,6 +21,8 @@ import ru.yandex.finance_tracker.storage.TransactionRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +33,10 @@ public class TransactionServiceImpl implements TransactionService {
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
     private final TransactionMapper mapper;
+    private final LargeExpenseProducer largeExpenseProducer;
+
+    @Value("${finance.kafka.large-expense-threshold:50000}")
+    private BigDecimal largeExpenseThreshold;
 
     private static final String ACCOUNT_NOT_FOUND_MESSAGE = "Счет не найден с id: ";
     private static final String INSUFFICIENT_BALANCE_MESSAGE = "Недостаточно средств на счете";
@@ -73,6 +82,12 @@ public class TransactionServiceImpl implements TransactionService {
         log.info("Создание транзакции для пользователя завершено: ID={}, новый баланс счета={}",
                 saved.getTransactionId(), newBalance);
 
+        // Публикация события о крупном расходе
+        if (saved.getType() == Type.EXPENSE
+                && saved.getAmount().compareTo(largeExpenseThreshold) > 0) {
+            publishLargeExpenseEvent(saved, userId);
+        }
+
         return mapper.toResponse(saved);
     }
 
@@ -98,5 +113,21 @@ public class TransactionServiceImpl implements TransactionService {
                     account.getId(), account.getCurrency(), request.getCurrency());
             throw new CurrencyMismatchException(request.getAccountId());
         }
+    }
+
+    private void publishLargeExpenseEvent(Transaction transaction, Long userId) {
+        log.info("Обнаружен крупный расход: userId={}, amount={}, порог={}",
+                userId, transaction.getAmount(), largeExpenseThreshold);
+
+        LargeExpenseAlertEvent event = LargeExpenseAlertEvent.builder()
+                .correlationId(UUID.randomUUID().toString())
+                .userId(userId)
+                .accountId(transaction.getAccount().getId())
+                .amount(transaction.getAmount())
+                .category(transaction.getCategory())
+                .timestamp(Instant.now())
+                .build();
+
+        largeExpenseProducer.send(event);
     }
 }

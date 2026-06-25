@@ -286,7 +286,7 @@ public class TransactionServiceTest extends ContainersForTests {
                   "amount": 100,
                   "currency": "RUB",
                   "category": "salary",
-                  "date": "2026-06-16",
+                  "date": "2026-06-16T10:00:00Z",
                   "description": "test"
                 }
                 """.formatted(account.getId());

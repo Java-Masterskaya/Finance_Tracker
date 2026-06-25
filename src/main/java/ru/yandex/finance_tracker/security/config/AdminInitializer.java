@@ -33,6 +33,7 @@ public class AdminInitializer {
                     "Admin",
                     UserRole.ROLE_ADMIN
             );
+            admin.setTimezone("Europe/Moscow");
             userRepository.save(admin);
             log.info("Default admin created: {}", adminEmail);
         }

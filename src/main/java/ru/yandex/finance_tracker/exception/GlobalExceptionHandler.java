@@ -76,6 +76,21 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Обрабатывает исключение, возникающее при попытке установить невалидный часовой пояс.
+     * <p>
+     * Перехватывает ситуации, когда пользователь передаёт строку, не являющуюся
+     * допустимым идентификатором временной зоны (например, "Moscow" вместо "Europe/Moscow").
+     * </p>
+     *
+     * @param ex исключение InvalidTimezoneException
+     * @return ResponseEntity с информацией об ошибке и статусом 400 (Bad Request)
+     */
+    @ExceptionHandler(InvalidTimezoneException.class)
+    public ResponseEntity<ApiError> handleInvalidTimezone(final InvalidTimezoneException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Invalid timezone", ex.getMessage());
+    }
+
+    /**
      * Обрабатывает ошибки валидации входных данных.
      * <p>
      * Перехватывает исключения, возникающие при нарушении ограничений (constraints),
@@ -138,7 +153,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleConstraintViolation(ConstraintViolationException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, "Validation Failed", ex.getMessage());
     }
-
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiError> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {

@@ -8,7 +8,8 @@ import ru.yandex.finance_tracker.model.Currency;
 import ru.yandex.finance_tracker.model.Type;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.stream.Stream;
 
 public class ArgumentsForTests {
@@ -22,7 +23,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("50"),
                                 Currency.RUB,
                                 "category",
-                                LocalDate.now(),
+                                Instant.now(),
                                 "test"
                         ),
                         new Account(1L, null, "name", Currency.EUR, new BigDecimal("100"), false)
@@ -35,7 +36,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("50"),
                                 Currency.RUB,
                                 "category",
-                                LocalDate.now(),
+                                Instant.now(),
                                 "test"
                         ),
                         new Account(1L, null, "name", Currency.USD, new BigDecimal("100"), false)
@@ -48,7 +49,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("50"),
                                 Currency.EUR,
                                 "category",
-                                LocalDate.now(),
+                                Instant.now(),
                                 "test"
                         ),
                         new Account(1L, null, "name", Currency.RUB, new BigDecimal("100"), false)
@@ -61,7 +62,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("50"),
                                 Currency.EUR,
                                 "category",
-                                LocalDate.now(),
+                                Instant.now(),
                                 "test"
                         ),
                         new Account(1L, null, "name", Currency.USD, new BigDecimal("100"), false)
@@ -74,7 +75,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("50"),
                                 Currency.USD,
                                 "category",
-                                LocalDate.now(),
+                                Instant.now(),
                                 "test"
                         ),
                         new Account(1L, null, "name", Currency.RUB, new BigDecimal("100"), false)
@@ -87,7 +88,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("50"),
                                 Currency.USD,
                                 "category",
-                                LocalDate.now(),
+                                Instant.now(),
                                 "test"
                         ),
                         new Account(1L, null, "name", Currency.EUR, new BigDecimal("100"), false)
@@ -104,7 +105,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("15.5"),
                                 Currency.RUB,
                                 "category",
-                                LocalDate.now(),
+                                Instant.now(),
                                 "test"
                         ),
                         new Account(
@@ -123,7 +124,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("50"),
                                 Currency.RUB,
                                 "category",
-                                LocalDate.now(),
+                                Instant.now(),
                                 "test"
                         ),
                         new Account(
@@ -148,7 +149,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("1"),
                                 Currency.RUB,
                                 "category",
-                                LocalDate.now(),
+                                Instant.now(),
                                 "test"
                         ),
                         new Account(
@@ -168,7 +169,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("0.02"),
                                 Currency.RUB,
                                 "category",
-                                LocalDate.now(),
+                                Instant.now(),
                                 "test"
                         ),
                         new Account(
@@ -188,7 +189,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("100.01"),
                                 Currency.RUB,
                                 "category",
-                                LocalDate.now(),
+                                Instant.now(),
                                 "test"
                         ),
                         new Account(
@@ -208,7 +209,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("10"),
                                 Currency.RUB,
                                 "category",
-                                LocalDate.now(),
+                                Instant.now(),
                                 "test"
                         ),
                         new Account(
@@ -228,7 +229,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("1.000001"),
                                 Currency.RUB,
                                 "category",
-                                LocalDate.now(),
+                                Instant.now(),
                                 "test"
                         ),
                         new Account(
@@ -314,7 +315,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("15.5"),
                                 Currency.RUB,
                                 "category",
-                                LocalDate.now(),
+                                Instant.now(),
                                 "test"
                         )
                 ),
@@ -325,7 +326,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("3.04003"),
                                 Currency.RUB,
                                 "151535",
-                                LocalDate.now(),
+                                Instant.now(),
                                 null
                         )
                 )
@@ -353,7 +354,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("-15.5"),
                                 Currency.RUB,
                                 "category",
-                                LocalDate.now(),
+                                Instant.now(),
                                 "test"
                         ),
                         1
@@ -365,7 +366,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("15.5"),
                                 Currency.RUB,
                                 "",
-                                LocalDate.now(),
+                                Instant.now(),
                                 "test"
                         ),
                         1
@@ -377,7 +378,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("15.5"),
                                 Currency.RUB,
                                 "   ",
-                                LocalDate.now(),
+                                Instant.now(),
                                 "test"
                         ),
                         1
@@ -389,7 +390,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("15.5"),
                                 Currency.RUB,
                                 null,
-                                LocalDate.now(),
+                                Instant.now(),
                                 "test"
                         ),
                         1
@@ -401,7 +402,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("15.5"),
                                 Currency.RUB,
                                 "test",
-                                LocalDate.now(),
+                                Instant.now(),
                                 "test"
                         ),
                         1
@@ -413,7 +414,7 @@ public class ArgumentsForTests {
                                 new BigDecimal("15.5"),
                                 Currency.RUB,
                                 "test",
-                                LocalDate.now().plusDays(1),
+                                Instant.now().plus(1, ChronoUnit.DAYS),
                                 "test"
                         ),
                         1

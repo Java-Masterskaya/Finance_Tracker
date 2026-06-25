@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260624-001
+      author: Irina-Boyko-20
+      changes:
+        - sql:
+            sql: |
+              ALTER TABLE transactions ALTER COLUMN date TYPE TIMESTAMPTZ USING date::TIMESTAMPTZ;
+              
+      rollback:
+        - sql:
+            sql: |
+              ALTER TABLE transactions ALTER COLUMN date TYPE DATE USING date::DATE;

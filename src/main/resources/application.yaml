@@ -83,3 +83,10 @@ springdoc:
   swagger-ui:
     url: /v3/api-docs-static
     path: /swagger-ui.html
+
+  # Конфигурация GeoIP сервиса для определения временной зоны по IP
+geo:
+  api:
+    url: "http://ip-api.com/json/%s?fields=timezone" # URL внешнего API для определения TZ
+    connect-timeout: 5s                              # Таймаут подключения (5 секунд)
+    read-timeout: 5s                                 # Таймаут ожидания ответа (5 секунд)

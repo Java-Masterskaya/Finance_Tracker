@@ -11,7 +11,8 @@ import ru.yandex.finance_tracker.storage.TransactionRepository;
 import ru.yandex.finance_tracker.storage.UserRepository;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,7 +52,7 @@ public class AccountServiceTests extends PostgreSQLContainerForTests {
                 BigDecimal.valueOf(100),
                 Currency.RUB,
                 "test",
-                LocalDate.now().minusDays(1),
+                Instant.now().minus(Duration.ofDays(1)),
                 "t1",
                 user
         ));
@@ -61,7 +62,7 @@ public class AccountServiceTests extends PostgreSQLContainerForTests {
                 BigDecimal.valueOf(200),
                 Currency.RUB,
                 "test2",
-                LocalDate.now(),
+                Instant.now(),
                 "t2",
                 user
         ));

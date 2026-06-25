@@ -11,7 +11,7 @@ import org.hibernate.dialect.type.PostgreSQLEnumJdbcType;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.Instant;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -40,7 +40,7 @@ public class Transaction {
     @Column(name = "category", nullable = false, length = 50)
     private String category;
     @Column(name = "date", nullable = false)
-    private LocalDate date;
+    private Instant date;
     @Column(name = "description", length = 300)
     private String description;
 

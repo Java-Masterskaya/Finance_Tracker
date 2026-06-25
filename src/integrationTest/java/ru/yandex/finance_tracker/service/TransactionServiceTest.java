@@ -18,6 +18,7 @@ import ru.yandex.finance_tracker.storage.TransactionRepository;
 import ru.yandex.finance_tracker.storage.UserRepository;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -78,7 +79,7 @@ public class TransactionServiceTest extends ContainersForTests {
                 new BigDecimal("30.00"),
                 Currency.RUB,
                 "test",
-                LocalDate.now(),
+                Instant.now(),
                 "test");
 
         for (int i = 0; i < numberOfThreads; i++) {
@@ -117,7 +118,7 @@ public class TransactionServiceTest extends ContainersForTests {
         account = accountRepository.saveAndFlush(account);
 
         TransactionRequest request = new TransactionRequest(
-                account.getId(), Type.EXPENSE, new BigDecimal("150.00"), Currency.RUB, "overdraft-check", LocalDate.now(), "check"
+                account.getId(), Type.EXPENSE, new BigDecimal("150.00"), Currency.RUB, "overdraft-check", Instant.now(), "check"
         );
 
         assertThrows(InsufficientBalanceException.class, () ->
@@ -135,7 +136,7 @@ public class TransactionServiceTest extends ContainersForTests {
         account = accountRepository.saveAndFlush(account);
 
         TransactionRequest request = new TransactionRequest(
-                account.getId(), Type.EXPENSE, new BigDecimal("150.00"), Currency.RUB, "overdraft-check", LocalDate.now(), "check"
+                account.getId(), Type.EXPENSE, new BigDecimal("150.00"), Currency.RUB, "overdraft-check", Instant.now(), "check"
         );
 
         transactionService.createTransaction(user.getId(), request);
@@ -164,7 +165,7 @@ public class TransactionServiceTest extends ContainersForTests {
                 BigDecimal.valueOf(50),
                 Currency.RUB,
                 "Test2",
-                LocalDate.now(),
+                Instant.now(),
                 "Test2"
         );
 
@@ -206,7 +207,7 @@ public class TransactionServiceTest extends ContainersForTests {
                 BigDecimal.valueOf(50),
                 Currency.RUB,
                 "test",
-                LocalDate.now(),
+                Instant.now(),
                 "test"
         );
 
@@ -246,7 +247,7 @@ public class TransactionServiceTest extends ContainersForTests {
                 BigDecimal.valueOf(50),
                 Currency.EUR,
                 "test",
-                LocalDate.now(),
+                Instant.now(),
                 "test"
         );
         assertThrows(CurrencyMismatchException.class, () -> transactionService.createTransaction(
@@ -285,7 +286,7 @@ public class TransactionServiceTest extends ContainersForTests {
                   "amount": 100,
                   "currency": "RUB",
                   "category": "salary",
-                  "date": "2026-06-16",
+                  "date": "2026-06-16T10:00:00Z",
                   "description": "test"
                 }
                 """.formatted(account.getId());

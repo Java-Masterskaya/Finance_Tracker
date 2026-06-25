@@ -26,7 +26,7 @@ import ru.yandex.finance_tracker.storage.TransactionRepository;
 import ru.yandex.finance_tracker.storage.UserRepository;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -100,6 +100,8 @@ public class AccountServiceTests {
         Long userId = 1L;
         Long accountId = 10L;
 
+        Instant now = Instant.now();
+
         Account account = new Account();
         account.setId(accountId);
         account.setBalance(BigDecimal.valueOf(1000));
@@ -114,7 +116,7 @@ public class AccountServiceTests {
                 BigDecimal.valueOf(100),
                 Currency.RUB,
                 "test",
-                LocalDate.now(),
+                now,
                 "test123",
                 user
         );
@@ -126,7 +128,7 @@ public class AccountServiceTests {
                 Type.INCOME,
                 BigDecimal.valueOf(100),
                 "test",
-                LocalDate.now(),
+                now,
                 "test123",
                 BigDecimal.valueOf(1000)
         );

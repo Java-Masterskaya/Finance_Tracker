@@ -12,6 +12,7 @@ import ru.yandex.finance_tracker.dto.input.TransactionRequest;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
 import ru.yandex.finance_tracker.exception.CurrencyMismatchException;
 import ru.yandex.finance_tracker.exception.InsufficientBalanceException;
+import ru.yandex.finance_tracker.kafka.LargeExpenseProducer;
 import ru.yandex.finance_tracker.mapper.TransactionMapper;
 import ru.yandex.finance_tracker.model.Account;
 import ru.yandex.finance_tracker.model.Transaction;
@@ -38,6 +39,9 @@ class TransactionServiceTests {
     @Mock
     private TransactionRepository transactionRepository;
 
+    @Mock
+    private LargeExpenseProducer largeExpenseProducer;
+
     private TransactionService service;
 
     @BeforeEach
@@ -45,7 +49,8 @@ class TransactionServiceTests {
         service = new TransactionServiceImpl(
                 accountRepository,
                 transactionRepository,
-                Mappers.getMapper(TransactionMapper.class)
+                Mappers.getMapper(TransactionMapper.class),
+                largeExpenseProducer
         );
     }
 

@@ -22,6 +22,8 @@ import ru.yandex.finance_tracker.service.TransactionServiceImpl;
 import ru.yandex.finance_tracker.storage.AccountRepository;
 import ru.yandex.finance_tracker.storage.TransactionRepository;
 
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,13 +46,19 @@ class TransactionServiceTests {
     private TransactionService service;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         service = new TransactionServiceImpl(
                 accountRepository,
                 transactionRepository,
                 Mappers.getMapper(TransactionMapper.class),
                 largeExpenseProducer
         );
+
+        Field field = TransactionServiceImpl.class
+                .getDeclaredField("largeExpenseThreshold");
+        field.setAccessible(true);
+        field.set(service, new BigDecimal("50000"));
+
         lenient().doNothing().when(largeExpenseProducer).send(any());
     }
 

@@ -205,7 +205,7 @@ public class AccountServiceTests {
 
         when(securityUtils.getCurrentUserId()).thenReturn(currentUserId);
 
-        assertThrows(AccessDeniedException.class,
+        assertThrows(NotFoundException.class,
                 () -> accountService.getAccountsByUserId(requestedUserId));
     }
 
@@ -217,7 +217,7 @@ public class AccountServiceTests {
         when(accountRepository.existsByIdAndUserId(accountId, userId))
                 .thenReturn(false);
 
-        assertThrows(AccessDeniedException.class,
+        assertThrows(NotFoundException.class,
                 () -> accountService.getTransactionsByAccountId(userId, accountId, 0, 20));
 
         verify(accountRepository).existsByIdAndUserId(accountId, userId);

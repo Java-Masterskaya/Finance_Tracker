@@ -38,12 +38,7 @@ public class AccountServiceImpl implements AccountService {
     public List<AccountInfoDto> getAccountsByUserId(Long userId) {
         log.info("Запрос списка счетов для пользователя с ID: {}", userId);
         Long currentUserId = securityUtils.getCurrentUserId();
-        if (!userId.equals(currentUserId)) {
-            log.error("Попытка доступа к чужим счетам: userId = {}", userId);
-            throw new AccessDeniedException("You can only access your own accounts");
-        }
-
-        if (!userRepository.existsById(userId)) {
+        if (!userRepository.existsById(userId) || !userId.equals(currentUserId)) {
             log.error("Ошибка получения счетов: пользователь с ID {} не существует", userId);
             throw new NotFoundException("User with ID %d not found".formatted(userId));
         }

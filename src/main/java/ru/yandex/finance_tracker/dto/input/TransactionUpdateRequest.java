@@ -1,7 +1,11 @@
 package ru.yandex.finance_tracker.dto.input;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import ru.yandex.finance_tracker.model.Type;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 

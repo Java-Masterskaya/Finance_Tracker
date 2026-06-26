@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 20260623-add-soft-delete-to-accounts
+      id: 20260625-add-soft-delete-to-accounts
       author: iliaalii
       comment: Добавление полей мягкого удаления и аудита для таблицы счетов
       changes:
@@ -19,7 +19,7 @@ databaseChangeLog:
                   defaultValueComputed: CURRENT_TIMESTAMP
 
   - changeSet:
-      id: 20260623-add-soft-delete-to-transactions
+      id: 20260625-add-soft-delete-to-transactions
       author: iliaalii
       comment: Добавление полей мягкого удаления и аудита для таблицы транзакций
       changes:

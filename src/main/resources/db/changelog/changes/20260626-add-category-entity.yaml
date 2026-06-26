@@ -1,0 +1,136 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260622-001-create-categories-and-migrate-all
+      author: iliaalii
+      changes:
+        # 1. Создаем таблицу категорий
+        - createTable:
+            tableName: categories
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+              # 🔥 ДОБАВЛЕНО: Поле мягкого удаления для категорий
+              - column:
+                  name: is_deleted
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+
+        # 2. Сидинг базового набора категорий (поштучно, чтобы всё применилось)
+        - insert:
+            tableName: categories
+            columns:
+              - column: { name: name, value: "Супермаркеты" }
+        - insert:
+            tableName: categories
+            columns:
+              - column: { name: name, value: "Транспорт" }
+        - insert:
+            tableName: categories
+            columns:
+              - column: { name: name, value: "Рестораны и кафе" }
+        - insert:
+            tableName: categories
+            columns:
+              - column: { name: name, value: "Зарплата" }
+        - insert:
+            tableName: categories
+            columns:
+              - column: { name: name, value: "ЖКХ" }
+        - insert:
+            tableName: categories
+            columns:
+              - column: { name: name, value: "Прочее" }
+
+        # 3. ВЫПОЛНЕНИЕ DOD: Переносим вообще все уникальные строковые категории, какие найдем в транзакциях
+        # ON CONFLICT гарантирует, что если категория "Транспорт" уже добавлена выше, дубликата не будет
+        - sql:
+            dbms: postgresql
+            sql: |
+              INSERT INTO categories (name)
+              SELECT DISTINCT category FROM transactions
+              WHERE category IS NOT NULL
+              ON CONFLICT (name) DO NOTHING;
+
+        # 4. Добавляем колонку для внешнего ключа
+        - addColumn:
+            tableName: transactions
+            columns:
+              - column:
+                  name: category_id
+                  type: BIGINT
+
+        # 5. Проставляем новые ID во все транзакции (и в базовые, и в перенесенные кастомные)
+        - sql:
+            dbms: postgresql
+            sql: |
+              UPDATE transactions t
+              SET category_id = c.id
+              FROM categories c
+              WHERE t.category = c.name;
+
+        # 6. Если вдруг закралась транзакция совсем без категории, страхуем её в "Прочее"
+        - sql:
+            dbms: postgresql
+            sql: |
+              UPDATE transactions
+              SET category_id = (SELECT id FROM categories WHERE name = 'Прочее')
+              WHERE category_id IS NULL;
+
+        # 7. Делаем колонку обязательной
+        - addNotNullConstraint:
+            tableName: transactions
+            columnName: category_id
+            columnDataType: BIGINT
+
+        # 8. Навешиваем Foreign Key
+        - addForeignKeyConstraint:
+            baseTableName: transactions
+            baseColumnNames: category_id
+            referencedTableName: categories
+            referencedColumnNames: id
+            constraintName: fk_transactions_categories
+
+        # 9. Удаляем старое строковое поле
+        - dropColumn:
+            tableName: transactions
+            columnName: category
+
+  - changeSet:
+      id: 20260622-002-add-historical-balance-to-transactions
+      author: iliaalii
+      changes:
+        # 1. Добавляем колонку для хранения исторического баланса
+        - addColumn:
+            tableName: transactions
+            columns:
+              - column:
+                  name: account_balance
+                  type: NUMERIC(19,2)
+
+        # 2. Для старых транзакций временно проставим текущий баланс аккаунта, чтобы не было null
+        - sql:
+            dbms: postgresql
+            sql: |
+              UPDATE transactions t
+              SET account_balance = a.balance
+              FROM accounts a
+              WHERE t.account_id = a.id;
+
+        # 3. Делаем колонку обязательной
+        - addNotNullConstraint:
+            tableName: transactions
+            columnName: account_balance
+            columnDataType: NUMERIC(19,2)

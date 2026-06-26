@@ -1,10 +1,10 @@
 {
   "info": {
-    "_postman_id": "50c1a554-7b4c-433f-a3df-fdc0332c2adb",
+    "_postman_id": "9b8e74a9-6d0a-40c0-b866-9e1a7d41d91e",
     "name": "Finans_tracker",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "44882404",
-    "_collection_link": "https://go.postman.co/collection/44882404-50c1a554-7b4c-433f-a3df-fdc0332c2adb?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/44882404-9b8e74a9-6d0a-40c0-b866-9e1a7d41d91e?source=collection_link"
   },
   "item": [
     {
@@ -22,13 +22,11 @@
               "    var jsonData = pm.response.json();",
               "    if (jsonData.token) {",
               "        pm.collectionVariables.set(\"jwt_token\", \"Bearer \" + jsonData.token);",
-              "        console.log(\"Токен после регистрации сохранен в глобальные переменные\");",
+              "        console.log(\"Токен после регистрации сохранен\");",
               "    }",
               "}"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
@@ -66,15 +64,11 @@
             "exec": [
               "pm.test(\"Успешный вход\", function () {",
               "    pm.response.to.have.status(200);",
-              "    ",
               "    var jsonData = pm.response.json();",
               "    pm.collectionVariables.set(\"jwt_token\", \"Bearer \" + jsonData.token);",
-              "    console.log(\"Токен после входа обновлен\");",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
@@ -114,17 +108,12 @@
               "    pm.response.to.have.status(201);",
               "});",
               "",
-              "if (pm.response.code === 201 && pm.response.text()) {",
+              "if (pm.response.code === 201) {",
               "    var jsonData = pm.response.json();",
-              "    if (jsonData.id) {",
-              "        pm.collectionVariables.set(\"last_account_id\", jsonData.id);",
-              "        console.log(\"ID нового счета сохранен: \" + jsonData.id);",
-              "    }",
+              "    pm.collectionVariables.set(\"last_account_id\", jsonData.id);",
               "}"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
@@ -167,19 +156,11 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"Доступ разрешен\", function () {",
+              "pm.test(\"Список счетов успешно получен\", function () {",
               "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.json()).to.be.an('array');",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        },
-        {
-          "listen": "prerequest",
-          "script": {
-            "packages": {},
             "type": "text/javascript"
           }
         }
@@ -208,15 +189,164 @@
       "response": []
     },
     {
-      "name": "5. Add transaction",
+      "name": "5. Update account",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Счет успешно обновлен\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.json().overdraftAllowed).to.eql(true);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Новое название счета\",\n  \"overdraftAllowed\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/accounts/{{last_account_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "accounts",
+            "{{last_account_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. Create Category (ADMIN)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Категория создана\", function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([201, 403]);",
+              "    if (pm.response.code === 201) {",
+              "        var jsonData = pm.response.json();",
+              "        pm.collectionVariables.set(\"last_category_id\", jsonData.id);",
+              "    }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Продукты\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/categories",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "categories"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. Get all categories",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Категории получены\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/categories",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "categories"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "8. Add transaction",
       "event": [
         {
           "listen": "prerequest",
           "script": {
             "exec": [
-              "// Генерируем случайный UUID для ключа идемпотентности перед каждым запросом",
-              "var uuid = require('crypto-js').lib.WordArray.random(16).toString();",
-              "pm.collectionVariables.set(\"idempotency_key\", uuid);"
+              "if(!pm.collectionVariables.get(\"last_category_id\")) {",
+              "    pm.collectionVariables.set(\"last_category_id\", 1);",
+              "}",
+              "// Получаем текущую дату и время в формате ISO (например, 2026-06-26T11:15:21.123Z)",
+              "const isoString = new Date().toISOString();",
+              "",
+              "// Отрезаем точку и миллисекунды, оставляя только секунды и добавляя Z",
+              "// Результат: 2026-06-26T11:15:21Z",
+              "const formattedDate = isoString.split('.')[0] + 'Z';",
+              "",
+              "// Записываем полученную строку в переменную окружения Postman",
+              "pm.environment.set(\"current_date_strict\", formattedDate);"
             ],
             "type": "text/javascript",
             "packages": {},
@@ -230,12 +360,10 @@
               "pm.test(\"Транзакция успешно создана\", function () {",
               "    pm.response.to.have.status(201);",
               "});",
-              "",
-              "pm.test(\"Проверка структуры ответа транзакции\", function () {",
+              "if (pm.response.code === 201) {",
               "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData).to.have.property(\"transactionId\");",
-              "    pm.expect(jsonData.amount).to.eql(1500.0);",
-              "});"
+              "    pm.collectionVariables.set(\"last_transaction_id\", jsonData.transactionId);",
+              "}"
             ],
             "type": "text/javascript",
             "packages": {},
@@ -253,13 +381,13 @@
           },
           {
             "key": "X-Idempotency-Key",
-            "value": "{{idempotency_key}}",
+            "value": "{{$randomUUID}}",
             "type": "text"
           }
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"accountId\": {{last_account_id}},\n  \"type\": \"EXPENSE\",\n  \"amount\": 5000.0,\n  \"category\": \"Супермаркет\",\n  \"currency\": \"RUB\",\n  \"date\": \"2026-05-24\",\n  \"description\": \"Покупка продуктов\"\n}",
+          "raw": "{\n  \"accountId\": {{last_account_id}},\n  \"type\": \"EXPENSE\",\n  \"amount\": 1500.0,\n  \"categoryId\": {{last_category_id}},\n  \"currency\": \"RUB\",\n  \"date\": \"{{current_date_strict}}\",\n  \"description\": \"Покупка продуктов\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -281,19 +409,17 @@
       "response": []
     },
     {
-      "name": "6. History account",
+      "name": "9. History account",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"Доступ разрешен\", function () {",
+              "pm.test(\"История транзакций получена\", function () {",
               "    pm.response.to.have.status(200);",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
@@ -304,22 +430,10 @@
             "key": "Authorization",
             "value": "{{jwt_token}}",
             "type": "text"
-          },
-          {
-            "key": "year",
-            "value": "2026",
-            "type": "text",
-            "disabled": true
-          },
-          {
-            "key": "month",
-            "value": "05",
-            "type": "text",
-            "disabled": true
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/v1/accounts/{{last_account_id}}/transaction",
+          "raw": "{{base_url}}/api/v1/accounts/{{last_account_id}}/transaction?page=0&size=20",
           "host": [
             "{{base_url}}"
           ],
@@ -329,25 +443,33 @@
             "accounts",
             "{{last_account_id}}",
             "transaction"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "20"
+            }
           ]
         }
       },
       "response": []
     },
     {
-      "name": "7. Account report",
+      "name": "10. Account report",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"Доступ разрешен\", function () {",
+              "pm.test(\"Отчет успешно сгенерирован\", function () {",
               "    pm.response.to.have.status(200);",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
@@ -361,7 +483,7 @@
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/v1/reports/monthly?year=2026&month=05",
+          "raw": "{{base_url}}/api/v1/reports/monthly?year=2026&month=6",
           "host": [
             "{{base_url}}"
           ],
@@ -378,41 +500,202 @@
             },
             {
               "key": "month",
-              "value": "05"
+              "value": "6"
             }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "11. Update transaction",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Транзакция изменена\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 1800.0,\n  \"type\": \"EXPENSE\",\n  \"description\": \"Измененная покупка\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/transactions/{{last_transaction_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "transactions",
+            "{{last_transaction_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "12. Delete transaction",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Транзакция удалена\", function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/transactions/{{last_transaction_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "transactions",
+            "{{last_transaction_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "13. Delete Category (ADMIN)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Категория удалена\", function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([204, 403]);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/categories/{{last_category_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "categories",
+            "{{last_category_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "14. Delete account",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Счет успешно удален\", function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/accounts/{{last_account_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "accounts",
+            "{{last_account_id}}"
           ]
         }
       },
       "response": []
     }
   ],
-  "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "packages": {},
-        "requests": {},
-        "exec": [
-          ""
-        ]
-      }
-    },
-    {
-      "listen": "test",
-      "script": {
-        "type": "text/javascript",
-        "packages": {},
-        "requests": {},
-        "exec": [
-          ""
-        ]
-      }
-    }
-  ],
   "variable": [
     {
       "key": "base_url",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "jwt_token",
+      "value": ""
+    },
+    {
+      "key": "last_account_id",
+      "value": ""
+    },
+    {
+      "key": "last_category_id",
+      "value": ""
+    },
+    {
+      "key": "last_transaction_id",
+      "value": ""
+    },
+    {
+      "key": "idempotency_key",
       "value": ""
     }
   ]

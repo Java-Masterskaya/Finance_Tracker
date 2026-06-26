@@ -7,13 +7,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.finance_tracker.dto.input.TransactionRequest;
 import ru.yandex.finance_tracker.dto.input.TransactionUpdateRequest;
+import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
 import ru.yandex.finance_tracker.exception.AccessDeniedException;
 import ru.yandex.finance_tracker.exception.CurrencyMismatchException;
-import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
 import ru.yandex.finance_tracker.exception.InsufficientBalanceException;
 import ru.yandex.finance_tracker.exception.NotFoundException;
-import ru.yandex.finance_tracker.kafka.LargeExpenseProducer;
 import ru.yandex.finance_tracker.kafka.LargeExpenseAlertEvent;
+import ru.yandex.finance_tracker.kafka.LargeExpenseProducer;
 import ru.yandex.finance_tracker.mapper.TransactionMapper;
 import ru.yandex.finance_tracker.model.Account;
 import ru.yandex.finance_tracker.model.Category;
@@ -232,7 +232,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .userId(userId)
                 .accountId(transaction.getAccount().getId())
                 .amount(transaction.getAmount())
-                .category(transaction.getCategory())
+                .category(transaction.getCategory().getName())
                 .timestamp(Instant.now())
                 .build();
 

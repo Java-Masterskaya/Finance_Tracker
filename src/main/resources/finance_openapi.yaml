@@ -91,7 +91,7 @@ paths:
 
   /api/v1/accounts:
     get:
-      summary: Получить список счетов пользователя
+      summary: Получить список счетов текущего авторизованного пользователя
       security:
         - BearerAuth: []
       responses:
@@ -103,6 +103,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AccountInfoDto'
+        '404':
+          description: Пользователь не авторизован (неверный или отсутствующий JWT)
+            или профиль текущего пользователя не найден в системе
 
     post:
       summary: Создание нового счета
@@ -132,6 +135,9 @@ paths:
                 message: "currency: must be one of RUB, EUR, USD"
                 status: 400
                 timestamp: "2026-05-29 12:00:00"
+        '404':
+          description: Пользователь не авторизован (неверный или отсутствующий JWT)
+            или профиль текущего пользователя не найден в системе
 
   /api/v1/accounts/{accountId}:
     put:
@@ -162,7 +168,9 @@ paths:
         '400':
           description: Неверный формат данных
         '404':
-          description: Счет не найден
+          description: Пользователь не авторизован (неверный или отсутствующий JWT)
+            или счет текущего пользователя не найден в системе
+
     delete:
       summary: Удалить счет
       security:
@@ -179,7 +187,8 @@ paths:
         '204':
           description: Счет успешно удален (No Content)
         '404':
-          description: Счет не найден
+          description: Пользователь не авторизован (неверный или отсутствующий JWT)
+            или счет текущего пользователя не найден в системе
 
   /api/v1/accounts/{accountId}/transaction:
     get:
@@ -613,7 +622,7 @@ components:
         date:
           type: string
           format: date-time
-          example: "2026-06-24T14:30:00.000Z"
+          example: "2026-06-26T12:00:00Z"
         description:
           type: string
           maxLength: 300
@@ -637,7 +646,7 @@ components:
         date:
           type: string
           format: date-time
-          example: "2026-06-24T15:00:00.000Z"
+          example: "2026-06-26T12:00:00Z"
         description:
           type: string
           maxLength: 300
@@ -666,7 +675,7 @@ components:
         date:
           type: string
           format: date-time
-          example: "2026-06-24T14:30:00.000Z"
+          example: "2026-06-26T12:00:00Z"
         description:
           type: string
           example: "Покупка продуктов"

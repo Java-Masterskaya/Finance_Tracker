@@ -2,7 +2,8 @@
   "accountId": 3,
   "type": "EXPENSE",
   "amount": 1500.0,
-  "category": "Супермаркеты",
-  "date": "2026-05-24",
+  "categoryId": 1,
+  "currency": "RUB",
+  "date": "2026-06-26T09:44:17Z",
   "description": "Покупка продуктов"
 }

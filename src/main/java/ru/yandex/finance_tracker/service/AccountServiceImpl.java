@@ -12,6 +12,7 @@ import ru.yandex.finance_tracker.dto.input.AccountUpdateRequest;
 import ru.yandex.finance_tracker.dto.output.AccountInfoDto;
 import ru.yandex.finance_tracker.dto.output.PagedTransactionResponse;
 import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
+import ru.yandex.finance_tracker.exception.BadRequestException;
 import ru.yandex.finance_tracker.exception.NotFoundException;
 import ru.yandex.finance_tracker.mapper.AccountMapper;
 import ru.yandex.finance_tracker.mapper.TransactionMapper;
@@ -47,7 +48,7 @@ public class AccountServiceImpl implements AccountService {
             throw new NotFoundException("User with ID %d not found".formatted(userId));
         }
 
-        List<Account> accounts = accountRepository.findByUserId(userId);
+        List<Account> accounts = accountRepository.findByUserIdAndIsDeletedFalse(userId);
         log.info("Найдено счетов: {} для пользователя ID: {}", accounts.size(), userId);
         return mapper.toDtoList(accounts);
     }

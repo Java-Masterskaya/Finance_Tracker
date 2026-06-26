@@ -4,7 +4,7 @@
   "type": "EXPENSE",
   "amount": 1500.0,
   "category": "Супермаркеты",
-  "date": "2026-05-24",
+  "date": "2026-06-26T09:44:17Z",
   "description": "Покупка продуктов",
-  "timestamp": "2026-05-29T19:59:03.712Z"
+  "accountBalance": "4000.00"
 }

@@ -32,13 +32,8 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -108,7 +103,7 @@ public class TransactionControllerTest {
     @Test
     public void shouldReturn404_WhenNotFoundExceptionIsThrown() throws Exception {
         TransactionRequest request = new TransactionRequest(
-                1L, Type.EXPENSE, new BigDecimal("50.00"), Currency.RUB, "test", Instant.now(), "test"
+                1L, Type.EXPENSE, new BigDecimal("50.00"), Currency.RUB, 1L, Instant.now(), "test"
         );
 
         when(idempotencyService.getCachedResponse(any())).thenReturn(Optional.empty());
@@ -131,7 +126,7 @@ public class TransactionControllerTest {
     @Test
     public void shouldReturn409_WhenIdempotencyKeyLockIsHeld() throws Exception {
         TransactionRequest request = new TransactionRequest(
-                1L, Type.INCOME, new BigDecimal("100.00"), Currency.RUB, "test", Instant.now(), "test"
+                1L, Type.INCOME, new BigDecimal("100.00"), Currency.RUB, 1L, Instant.now(), "test"
         );
 
         when(idempotencyService.getCachedResponse(any())).thenReturn(Optional.empty());
@@ -152,7 +147,7 @@ public class TransactionControllerTest {
     @Test
     public void shouldReturnCachedResponse_WhenIdempotencyKeyExists() throws Exception {
         TransactionRequest request = new TransactionRequest(
-                1L, Type.INCOME, new BigDecimal("100.00"), Currency.RUB, "test", Instant.now(), "test"
+                1L, Type.INCOME, new BigDecimal("100.00"), Currency.RUB, 1L, Instant.now(), "test"
         );
 
         TransactionInfoDto cachedResponse = new TransactionInfoDto(1L, 1L, Type.INCOME, BigDecimal.TEN, "test", Instant.now(), "test",
@@ -176,7 +171,7 @@ public class TransactionControllerTest {
     @Test
     public void shouldReturn500_WhenUnexpectedExceptionIsThrown() throws Exception {
         TransactionRequest request = new TransactionRequest(
-                1L, Type.EXPENSE, new BigDecimal("10.00"), Currency.RUB, "test", Instant.now(), "test"
+                1L, Type.EXPENSE, new BigDecimal("10.00"), Currency.RUB, 1L, Instant.now(), "test"
         );
 
         when(idempotencyService.getCachedResponse(any())).thenReturn(Optional.empty());
@@ -199,7 +194,7 @@ public class TransactionControllerTest {
     @Test
     public void shouldReturn201_WhenTransactionCreatedSuccessfully() throws Exception {
         TransactionRequest request = new TransactionRequest(
-                1L, Type.INCOME, new BigDecimal("200.00"), Currency.RUB, "Salary", Instant.now(), "test"
+                1L, Type.INCOME, new BigDecimal("200.00"), Currency.RUB, 1L, Instant.now(), "test"
         );
 
         TransactionInfoDto response = new TransactionInfoDto(42L, 1L, Type.INCOME, new BigDecimal("200.00"),

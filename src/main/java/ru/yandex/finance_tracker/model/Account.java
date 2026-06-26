@@ -13,6 +13,7 @@ import java.time.Instant;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @ToString(exclude = "user")
 @Entity
 @Table(name = "accounts")

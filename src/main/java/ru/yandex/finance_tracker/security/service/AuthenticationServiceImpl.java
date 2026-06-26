@@ -36,6 +36,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 request.getFirstName(),
                 UserRole.ROLE_USER
         );
+
+        user.setTimezone("UTC");
+
         userRepository.save(user);
         String token = jwtService.generateToken(user.getId());
         return new JwtResponse(token, user.getEmail(), user.getRole());

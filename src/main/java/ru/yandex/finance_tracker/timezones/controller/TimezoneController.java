@@ -8,8 +8,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.finance_tracker.security.dto.AuthInfo;
 import ru.yandex.finance_tracker.timezones.dto.TimezoneRequest;
-import ru.yandex.finance_tracker.timezones.service.TimezoneServiceImpl;
 import ru.yandex.finance_tracker.timezones.model.Timezone;
+import ru.yandex.finance_tracker.timezones.service.TimezoneServiceImpl;
 
 import java.util.List;
 

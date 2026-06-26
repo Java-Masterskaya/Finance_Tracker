@@ -16,7 +16,10 @@ import ru.yandex.finance_tracker.storage.TransactionRepository;
 import ru.yandex.finance_tracker.storage.UserRepository;
 
 import java.math.BigDecimal;
-import java.time.*;
+import java.time.Instant;
+import java.time.YearMonth;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -120,7 +123,7 @@ public class ReportServiceTest {
         ArgumentCaptor<Instant> endCaptor2 = ArgumentCaptor.forClass(Instant.class);
 
         ArgumentCaptor<Instant> startCaptor3 = ArgumentCaptor.forClass(Instant.class);
-        ArgumentCaptor<Instant> endCaptor3 = ArgumentCaptor.forClass(Instant.class);;
+        ArgumentCaptor<Instant> endCaptor3 = ArgumentCaptor.forClass(Instant.class);
 
         when(transactionRepository.sumAmountByUserIdAndDateBetween(
                 eq(USER_ID), startCaptor1.capture(), endCaptor1.capture(), eq(Type.INCOME)))
@@ -137,8 +140,9 @@ public class ReportServiceTest {
 
         ZonedDateTime expectedStart = YearMonth.of(year, month).atDay(1)
                 .atStartOfDay(ZoneId.of(timezone));
-        ZonedDateTime expectedEnd = YearMonth.of(year, month).atEndOfMonth()
-                .atTime(LocalTime.MAX).atZone(ZoneId.of(timezone));
+
+        ZonedDateTime expectedEnd = YearMonth.of(year, month).plusMonths(1).atDay(1)
+                .atStartOfDay(ZoneId.of(timezone));
 
         assertThat(startCaptor1.getValue()).isEqualTo(expectedStart.toInstant());
         assertThat(endCaptor1.getValue()).isEqualTo(expectedEnd.toInstant());
@@ -155,13 +159,18 @@ public class ReportServiceTest {
         when(transactionRepository.sumAmountByUserIdAndDateBetween(
                 eq(USER_ID), startCaptor.capture(), endCaptor.capture(), eq(Type.INCOME)))
                 .thenReturn(INCOME);
+        when(transactionRepository.sumAmountByUserIdAndDateBetween(
+                eq(USER_ID), any(Instant.class), any(Instant.class), eq(Type.EXPENSE)))
+                .thenReturn(BigDecimal.ZERO);
+        when(transactionRepository.getExpenseByCategory(anyLong(), any(Instant.class), any(Instant.class)))
+                .thenReturn(List.of());
 
         reportService.getMonthlyReport(USER_ID, 2025, 12);
 
         ZonedDateTime expectedStart = YearMonth.of(2025, 12).atDay(1)
                 .atStartOfDay(ZoneId.of(DEFAULT_TIMEZONE));
-        ZonedDateTime expectedEnd = YearMonth.of(2025, 12).atEndOfMonth()
-                .atTime(LocalTime.MAX).atZone(ZoneId.of(DEFAULT_TIMEZONE));
+        ZonedDateTime expectedEnd = YearMonth.of(2025, 12).plusMonths(1).atDay(1)
+                .atStartOfDay(ZoneId.of(DEFAULT_TIMEZONE));
 
         assertThat(startCaptor.getValue()).isEqualTo(expectedStart.toInstant());
         assertThat(endCaptor.getValue()).isEqualTo(expectedEnd.toInstant());

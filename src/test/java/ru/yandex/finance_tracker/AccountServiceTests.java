@@ -13,7 +13,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import ru.yandex.finance_tracker.dto.input.AccountCreateRequest;
 import ru.yandex.finance_tracker.dto.output.AccountInfoDto;
-import ru.yandex.finance_tracker.dto.output.TransactionInfoDto;
+import ru.yandex.finance_tracker.dto.output.PagedTransactionResponse;
 import ru.yandex.finance_tracker.exception.NotFoundException;
 import ru.yandex.finance_tracker.mapper.AccountMapper;
 import ru.yandex.finance_tracker.mapper.TransactionMapper;
@@ -45,7 +45,7 @@ public class AccountServiceTests {
     private UserRepository userRepository;
     @Mock
     private TransactionRepository transactionRepository;
-    private TransactionMapper transactionMapper = Mappers.getMapper(TransactionMapper.class);
+    private final TransactionMapper transactionMapper = Mappers.getMapper(TransactionMapper.class);
     private AccountService accountService;
     @Mock
     private SecurityUtils securityUtils;
@@ -65,7 +65,6 @@ public class AccountServiceTests {
     @ParameterizedTest
     @MethodSource("ru.yandex.finance_tracker.ArgumentsForTests#validAccountRequests")
     void shouldCreateAccount(AccountCreateRequest request) {
-
         Long userId = 1L;
         User user = new User();
         user.setId(userId);
@@ -85,7 +84,6 @@ public class AccountServiceTests {
         verify(accountRepository).save(captor.capture());
 
         Account saved = captor.getValue();
-
         assertEquals(user, saved.getUser());
         assertEquals(request.getName(), saved.getName());
         assertEquals(request.getInitialBalance(), saved.getBalance());
@@ -96,10 +94,8 @@ public class AccountServiceTests {
 
     @Test
     void shouldReturnTransactionsForAccount() {
-
         Long userId = 1L;
         Long accountId = 10L;
-
         Instant now = Instant.now();
 
         Account account = new Account();
@@ -108,80 +104,38 @@ public class AccountServiceTests {
 
         User user = new User();
         user.setId(userId);
-
+        Category category = new Category(1L, "test", false);
         Transaction tx1 = new Transaction(
-                100L,
-                account,
-                Type.INCOME,
-                BigDecimal.valueOf(100),
-                Currency.RUB,
-                "test",
-                now,
-                "test123",
-                user
+                100L, account, Type.INCOME, BigDecimal.valueOf(100), Currency.RUB,
+                category, now, "test123", BigDecimal.valueOf(1000), user, false, now
         );
 
+        // Используем актуальный метод из нового AccountRepository
+        when(accountRepository.findByIdAndUserIdAndIsDeletedFalse(accountId, userId))
+                .thenReturn(Optional.of(account));
 
-        TransactionInfoDto dto1 = new TransactionInfoDto(
-                100L,
-                accountId,
-                Type.INCOME,
-                BigDecimal.valueOf(100),
-                "test",
-                now,
-                "test123",
-                BigDecimal.valueOf(1000)
-        );
+        when(transactionRepository.findByAccount_IdAndIsDeletedFalse(eq(accountId), any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of(tx1)));
 
-        when(accountRepository.existsByIdAndUserId(accountId, userId))
-                .thenReturn(true);
+        PagedTransactionResponse result = accountService.getTransactionsByAccountId(userId, accountId, 0, 20);
 
-        when(transactionRepository.findByAccountId(
-                eq(accountId),
-                any(PageRequest.class)
-        )).thenReturn(new PageImpl<>(List.of(tx1)));
-
-
-        List<TransactionInfoDto> result =
-                accountService.getTransactionsByAccountId(
-                        userId,
-                        accountId,
-                        0,
-                        20
-                );
-
-        assertEquals(1, result.size());
-        assertEquals(dto1, result.getFirst());
-
-        verify(accountRepository)
-                .existsByIdAndUserId(accountId, userId);
-
-        verify(transactionRepository)
-                .findByAccountId(eq(accountId), any(PageRequest.class));
+        assertEquals(1, result.getSize());
+        verify(accountRepository).findByIdAndUserIdAndIsDeletedFalse(accountId, userId);
+        verify(transactionRepository).findByAccount_IdAndIsDeletedFalse(eq(accountId), any(PageRequest.class));
     }
 
     @Test
     void shouldThrowNotFoundExceptionWhenAccountNotBelongToUser() {
-
         Long userId = 1L;
         Long accountId = 10L;
 
-        when(accountRepository.existsByIdAndUserId(accountId, userId))
-                .thenReturn(false);
+        when(accountRepository.findByIdAndUserIdAndIsDeletedFalse(accountId, userId))
+                .thenReturn(Optional.empty());
 
-        assertThrows(
-                NotFoundException.class,
-                () -> accountService.getTransactionsByAccountId(
-                        userId,
-                        accountId,
-                        0,
-                        20
-                )
-        );
+        assertThrows(NotFoundException.class,
+                () -> accountService.getTransactionsByAccountId(userId, accountId, 0, 20));
 
-        verify(accountRepository)
-                .existsByIdAndUserId(accountId, userId);
-
+        verify(accountRepository).findByIdAndUserIdAndIsDeletedFalse(accountId, userId);
         verifyNoInteractions(transactionRepository);
     }
 
@@ -192,12 +146,12 @@ public class AccountServiceTests {
         when(userRepository.existsById(userId)).thenReturn(true);
 
         List<Account> accounts = List.of(new Account(), new Account());
-        when(accountRepository.findByUserId(userId)).thenReturn(accounts);
+        when(accountRepository.findByUserIdAndIsDeletedFalse(userId)).thenReturn(accounts);
 
         List<AccountInfoDto> result = accountService.getAccountsByUserId(userId);
 
         assertThat(result).hasSize(2);
-        verify(accountRepository).findByUserId(userId);
+        verify(accountRepository).findByUserIdAndIsDeletedFalse(userId);
     }
 
     @Test
@@ -212,17 +166,17 @@ public class AccountServiceTests {
     }
 
     @Test
-    void shouldThrowAccessDeniedWhenAccountDoesNotBelongToUser() {
+    void shouldThrowNotFoundWhenAccountDoesNotBelongToUser() {
         Long userId = 1L;
         Long accountId = 999L;
 
-        when(accountRepository.existsByIdAndUserId(accountId, userId))
-                .thenReturn(false);
+        when(accountRepository.findByIdAndUserIdAndIsDeletedFalse(accountId, userId))
+                .thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class,
                 () -> accountService.getTransactionsByAccountId(userId, accountId, 0, 20));
 
-        verify(accountRepository).existsByIdAndUserId(accountId, userId);
+        verify(accountRepository).findByIdAndUserIdAndIsDeletedFalse(accountId, userId);
         verifyNoInteractions(transactionRepository);
     }
 }

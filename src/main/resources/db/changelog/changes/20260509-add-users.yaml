@@ -26,7 +26,7 @@ databaseChangeLog:
                   name: password_hash
                   type: VARCHAR(60)
                   constraints:
-                      nullable: false
+                    nullable: false
                   remarks: "Хеш пароля (BCrypt)"
               - column:
                   name: name
@@ -38,7 +38,7 @@ databaseChangeLog:
                   name: role
                   type: VARCHAR(20)
                   constraints:
-                      nullable: false
+                    nullable: false
                   remarks: "Роль (ROLE_USER, ROLE_ADMIN)"
 
   - changeSet:

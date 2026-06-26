@@ -15,11 +15,13 @@ import ru.yandex.finance_tracker.exception.InsufficientBalanceException;
 import ru.yandex.finance_tracker.kafka.LargeExpenseProducer;
 import ru.yandex.finance_tracker.mapper.TransactionMapper;
 import ru.yandex.finance_tracker.model.Account;
+import ru.yandex.finance_tracker.model.Category;
 import ru.yandex.finance_tracker.model.Transaction;
 import ru.yandex.finance_tracker.model.Type;
 import ru.yandex.finance_tracker.service.TransactionService;
 import ru.yandex.finance_tracker.service.TransactionServiceImpl;
 import ru.yandex.finance_tracker.storage.AccountRepository;
+import ru.yandex.finance_tracker.storage.CategoryRepository;
 import ru.yandex.finance_tracker.storage.TransactionRepository;
 
 import java.lang.reflect.Field;
@@ -43,6 +45,9 @@ class TransactionServiceTests {
     @Mock
     private LargeExpenseProducer largeExpenseProducer;
 
+    @Mock
+    private CategoryRepository categoryRepository;
+
     private TransactionService service;
 
     @BeforeEach
@@ -51,6 +56,7 @@ class TransactionServiceTests {
                 accountRepository,
                 transactionRepository,
                 Mappers.getMapper(TransactionMapper.class),
+                categoryRepository,
                 largeExpenseProducer
         );
 
@@ -60,6 +66,9 @@ class TransactionServiceTests {
         field.set(service, new BigDecimal("50000"));
 
         lenient().doNothing().when(largeExpenseProducer).send(any());
+
+        lenient().when(categoryRepository.findByIdAndIsDeletedFalse(anyLong()))
+                .thenReturn(Optional.of(new Category(1L, "test", false)));
     }
 
     @ParameterizedTest
@@ -69,7 +78,6 @@ class TransactionServiceTests {
         assertThrows(InsufficientBalanceException.class,
                 () -> service.createTransaction(1L, request), "Сервис допустил некорректный баланс. " +
                         "Запросы:\n" + request + "\n" + account);
-
     }
 
     @ParameterizedTest
@@ -83,7 +91,6 @@ class TransactionServiceTests {
     @MethodSource("ru.yandex.finance_tracker.ArgumentsForTests#argumentsForCreateTransaction")
     void shouldCreateTransaction(TransactionRequest request, Account account) {
         var balance = account.getBalance();
-
         Long userId = 1L;
 
         when(accountRepository.findByIdAndUserIdWithLock(
@@ -97,14 +104,10 @@ class TransactionServiceTests {
         when(accountRepository.save(any(Account.class)))
                 .thenAnswer(inv -> inv.getArgument(0));
 
-        TransactionInfoDto result =
-                service.createTransaction(userId, request);
+        TransactionInfoDto result = service.createTransaction(userId, request);
 
-        ArgumentCaptor<Account> accountCaptor =
-                ArgumentCaptor.forClass(Account.class);
-
-        ArgumentCaptor<Transaction> txCaptor =
-                ArgumentCaptor.forClass(Transaction.class);
+        ArgumentCaptor<Account> accountCaptor = ArgumentCaptor.forClass(Account.class);
+        ArgumentCaptor<Transaction> txCaptor = ArgumentCaptor.forClass(Transaction.class);
 
         verify(accountRepository).save(accountCaptor.capture());
         verify(transactionRepository).save(txCaptor.capture());
